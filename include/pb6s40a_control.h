@@ -1,0 +1,156 @@
+/**
+  ******************************************************************************
+  * File Name          : pb6s40a_control.h
+  * Description        : Header file of Autopilot power board (PB6S40A) driver
+  ******************************************************************************
+  * INSTRUCTIONS
+  * /LEDS/
+  * -sum of all mounted leds must not exceed 50
+  * -maximum led count for fl,fr,rl,rr channel is 10, for add channel is maximum 40 leds                            
+  * - RGB value is from range 0-128
+  * 
+  * /ESC CONTROL/
+  * - ERROR_WARN_LOG structure contain diagnostic_status variable, which is filled by 0 when there was no error communicating with esc
+  ******************************************************************************
+  */
+#include "i2c_driver.h"
+#include <cstring> 
+#include <iostream>
+
+
+/*Power board PB6S40A - I2C2 MESSAGE REGISTERS*/
+#define I2C2_NOTHING_REG				0x00
+#define I2C2_WHOIAM_READ_REG			0x01
+#define I2C2_ESC_STATE_GET_REG			0x11
+#define I2C2_ESC_STATE_SET_REG			0x12
+#define I2C2_ESC1_ERROR_GET_REG			0x13
+#define I2C2_ESC2_ERROR_GET_REG			0x14
+#define I2C2_ESC3_ERROR_GET_REG			0x15
+#define I2C2_ESC4_ERROR_GET_REG			0x16
+#define I2C2_ESC1_DATA_GET_REG			0x17
+#define I2C2_ESC2_DATA_GET_REG			0x18
+#define I2C2_ESC3_DATA_GET_REG			0x19
+#define I2C2_ESC4_DATA_GET_REG			0x1A
+#define I2C2_LEDS_UPDATE_REG			0x60
+#define I2C2_LEDS_COUNT_GET_REG			0x61
+#define I2C2_LEDS_COUNT_SET_REG			0x62
+#define I2C2_LEDS_COLOR_SET_REG			0x63
+#define I2C2_LEDS_COLOR_SET_LONG_REG	0x64
+
+#define I2C2_WHOIAM_READ_REG_LEN		1
+#define I2C2_ESC_STATE_REG_LENGTH		1
+#define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
+#define I2C2_ESC_DATA_REG_LENGTH		8	 //size of RUN_DATA_Struct
+#define I2C2_LEDS_UPDATE_REG_LENGTH		1
+#define I2C2_LEDS_COUNT_REG_LENGTH		5
+#define I2C2_LEDS_COLOR_SET_LENGTH		31
+#define I2C2_LEDS_COLOR_SET_LONG_LENGTH	121
+
+#define ERROR_WARN_INIT {0x0000, 0x0000}
+#define ERROR_WARN_LOG_INIT {ERROR_WARN_INIT, ERROR_WARN_INIT, ERROR_WARN_INIT}
+
+const uint8_t i2c_slave_address = 0x10; // SLAVE ADDRESS OF POWER BOARD I2C2
+
+enum esc_states{escs_sleep,	escs_run, escs_diagnostic};
+enum esc_numbers{esc1=1,esc2,esc3,esc4};
+
+typedef struct _ERROR_WARN_
+{
+    uint32_t Error;
+    uint32_t Warn;
+} ERROR_WARN;
+
+typedef struct _ERROR_WARN_LOG_
+{
+    ERROR_WARN Last; // From the current start-up
+    ERROR_WARN Prev; // From the previous start-up
+    ERROR_WARN All;  // Summary from old start-ups (Excluded previous)
+    uint8_t Diagnostic_status;  //0=NO_ERROR
+} ERROR_WARN_LOG;
+
+typedef struct _RUN_DATA_Struct_
+{
+    uint32_t Is_Motor_Max  :12;//in IQ8
+    uint32_t Is_Motor_Avg  :12;//in 0.1A
+    uint32_t Temp_ESC_Max  :8; //offset -50
+
+    uint32_t Temp_Motor_Max:8; //offset -50
+    uint32_t Reserved      :24;
+} RUN_DATA_Struct;
+
+
+
+class Pb6s40aDroneControl
+{
+    private: 
+        I2CDriver& i2c_driver;
+    public:     
+
+        int EscSetState(uint8_t pesc_state);
+        
+        int EscGetState(uint8_t* pesc_state);
+
+        int EscGetErrorLogs(ERROR_WARN_LOG* pesc_state, uint8_t esc_number);
+
+        int EscGetDataLogs(RUN_DATA_Struct* pesc_state, uint8_t esc_number);
+
+        Pb6s40aDroneControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
+
+        ~Pb6s40aDroneControl();
+};    
+
+
+
+enum led_buffers
+{
+	fl_buffer,
+	fr_buffer,
+	rl_buffer,
+	rr_buffer,
+	ad_buffer
+};
+
+typedef struct _LEDS_COUNT
+{
+  uint8_t fl_leds_count=10;
+  uint8_t fr_leds_count=10;
+  uint8_t rl_leds_count=10;
+  uint8_t rr_leds_count=10;
+  uint8_t ad_leds_count=10;
+} LEDS_COUNT;
+
+typedef struct _COLOR
+{
+  uint8_t R;
+  uint8_t G;
+  uint8_t B;
+} COLOR;
+
+#define RED		        {128, 0, 0}
+#define GREEN		    {0, 128, 0}
+#define BLUE		    {0, 0, 128}
+#define YELLOW 		    {128, 128, 0}
+#define CYAN		    {0, 128, 128}
+#define MAGENTA		    {128, 0, 128}
+#define WHITE           {128, 128, 128}
+
+class Pb6s40aLedsControl
+{
+    private: 
+        I2CDriver& i2c_driver;
+    public:    
+
+        Pb6s40aLedsControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
+
+        int LedsSendColorBuffer(uint8_t led_channel, COLOR buffer[], uint8_t led_count);
+
+        int LedsSetLedsCount(LEDS_COUNT &leds_count);
+
+        int LedsGetLedsCount(LEDS_COUNT &leds_count);
+
+        int LedsUpdate();
+
+        int LedsSetBufferWithOneColor(COLOR buffer[], COLOR color_to_set, uint8_t led_count);
+
+        ~Pb6s40aLedsControl(){}
+};    
