@@ -3,7 +3,8 @@
 #include <iostream>
 #include <unistd.h> 
 
-const char * device = "/dev/i2c-1";
+//const char * device = "/dev/i2c-1"; // NANO
+const char * device = "/dev/i2c-8";  //NX
 I2CDriver i2c1_driver;
 Pb6s40aDroneControl drone_control(i2c1_driver);
 Pb6s40aLedsControl leds_control(i2c1_driver);
@@ -11,6 +12,7 @@ Pb6s40aLedsControl leds_control(i2c1_driver);
 
 ERROR_WARN_LOG esc_error_logs[4] ={ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT};
 RUN_DATA_Struct esc_data_logs[4];
+ADB_DEVICE_INFO esc_device_infos[4];
 
 LEDS_COUNT mounted_leds_count;
 COLOR leds_fl_color_buff[10];
@@ -18,6 +20,14 @@ COLOR leds_fr_color_buff[10];
 COLOR leds_rl_color_buff[10];
 COLOR leds_rr_color_buff[10];
 COLOR leds_ad_color_buff[40];
+
+uint8_t drone_arm_state = drone_disarm;
+
+/*Power board firmware number*/
+uint8_t pb_fw_major;
+uint8_t pb_fw_mid;
+uint8_t pb_fw_minor;
+
 
 int main(int argc, char **argv)
 {
@@ -32,14 +42,31 @@ int main(int argc, char **argv)
       std::cout<<" ... ..."<<std::endl;
 
       uint8_t status=0; // 0=No Error
-      /****ESC FUNCTION EXAMPLES ****/
 
-     /*Functions to read/write state of ESC*/
+      /*Power board firmware read*/
+      status = drone_control.PowerBoardFwVersionGet(&pb_fw_major, &pb_fw_mid, &pb_fw_minor);
+      std::cout<<"status:"<<(int)status<<" FIRMWARE (maj.mid.min): "<<(int)pb_fw_major<<"."<<(int)pb_fw_mid<<"."<<(int)pb_fw_minor<<std::endl;
+
+      /*DRONE ARM STATE*/     
+      //SET arm/disarm STATE
+      /*status = drone_control.DroneArmSet(drone_arm);
+      //GET STATE
+      status = drone_control.DroneArmGet(&drone_arm_state);
+      std::cout<<"status:"<<(int)status<<" drone arm state:"<<(int)drone_arm_state<<std::endl;*/
+
+
+      std::cout<<"press key"<<std::endl;
+      std::getc(stdin);
+
+      /****ESC FUNCTION EXAMPLES ****/
+     /*Functions to read/write state of ESC  - not used noww*/
       /*uint8_t esc_state;
-      status= drone_control.EscSetState(escs_run);
+      status= drone_control.EscSetState(escs_run);  //SET escs to sleep / run 
       status= drone_control.EscGetState(&esc_state);*/
 
-      //Functions to read ESCs error logs
+
+
+      /*Functions to read ESCs error logs, data logs and info*/
       /*status= drone_control.EscGetErrorLogs(&esc_error_logs[0],esc1);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[1],esc2);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[2],esc3);
@@ -48,24 +75,44 @@ int main(int argc, char **argv)
       /*status= drone_control.EscGetDataLogs(&esc_data_logs[0],esc1);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[1],esc2);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[2],esc3);      
-      status= drone_control.EscGetDataLogs(&esc_data_logs[3],esc4);*/   
+      status= drone_control.EscGetDataLogs(&esc_data_logs[3],esc4);  
       
-      /*std::cout<<(int)esc_data_logs[0].Temp_ESC_Max<<std::endl;
+      std::cout<<(int)esc_data_logs[0].Temp_ESC_Max<<std::endl;
       std::cout<<(int)esc_data_logs[1].Temp_ESC_Max<<std::endl;
       std::cout<<(int)esc_data_logs[2].Temp_ESC_Max<<std::endl;
-      std::cout<<(int)esc_data_logs[3].Temp_ESC_Max<<std::endl;*/     
+      std::cout<<(int)esc_data_logs[3].Temp_ESC_Max<<std::endl; */
+
+
+      status= drone_control.EscGetDeviceInfo(&esc_device_infos[0],esc1); 
+      status= drone_control.EscGetDeviceInfo(&esc_device_infos[1],esc2);
+      status= drone_control.EscGetDeviceInfo(&esc_device_infos[2],esc3);
+      status= drone_control.EscGetDeviceInfo(&esc_device_infos[3],esc4);
+      for (int i = 0; i < 4; i++)
+      {
+         std::cout<<"status:"<<(int)status<<"  ESC"<<i<<" FIRMWARE (maj.mid.min): "<<(int)esc_device_infos[i].fw_number.major<<"."<<(int)esc_device_infos[i].fw_number.mid<<"."<<(int)esc_device_infos[i].fw_number.minor<<"   device addr:"<<(int)esc_device_infos[i].device_address<<
+         "   hw build:"<<(int)esc_device_infos[i].hw_build<<std::endl;
+      }
+      
+
+      /*ESC CONFIG MODE - only for esc config script*/
+      //status = drone_control.EscStartOrEscapeConfigMode();
+      //std::cout<<"EscStartOrEscapeConfigMode:  status:"<<(int)status<<std::endl;
+
+      //NEXT STEP
+      //status = drone_control.EscNextStepInConfigMode();
+      //std::cout<<"EscNextStepInConfigMode:  status:"<<(int)status<<std::endl;
 
 
       /****LEDS FUNCTION EXAMPLES ****/
       //Functions to GET/SET mounted leds count 
       //LEDS_COUNT ledc;
       //status=leds_control.LedsGetLedsCount(ledc);
-      mounted_leds_count.fl_leds_count=10;
+      /*mounted_leds_count.fl_leds_count=10;
       mounted_leds_count.fr_leds_count=10;
       mounted_leds_count.rl_leds_count=10;
       mounted_leds_count.rr_leds_count=10;
       mounted_leds_count.ad_leds_count=9;
-      status=leds_control.LedsSetLedsCount(mounted_leds_count);
+      status=leds_control.LedsSetLedsCount(mounted_leds_count);*/
 
       
 
@@ -73,7 +120,7 @@ int main(int argc, char **argv)
       std::getc(stdin);
       std::cout<<" ... ..."<<std::endl;*/      
       COLOR pom_color = RED;
-      while(1)
+      while(0)
       {
             usleep(100000);
             pom_color.R=128;

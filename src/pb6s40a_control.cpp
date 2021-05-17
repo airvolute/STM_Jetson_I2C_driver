@@ -1,6 +1,104 @@
 #include "pb6s40a_control.h"
 
 /*DRONE CONTROL*/
+int Pb6s40aDroneControl::PowerBoardFwVersionGet(uint8_t* fw_major, uint8_t* fw_mid, uint8_t* fw_minor){  
+    uint8_t status=0; 
+    uint8_t received_data[I2C2_POWER_BOARD_FW_NUMBER_LEN+1];    
+    uint8_t checksum=0;   
+    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_POWER_BOARD_FW_NUMBER,&received_data[0],(I2C2_POWER_BOARD_FW_NUMBER_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_FW_NUMBER_LEN);
+        if(checksum == received_data[I2C2_POWER_BOARD_FW_NUMBER_LEN])
+        {
+            uint32_t pom =0;
+            *fw_minor= received_data[3];
+            *fw_mid= received_data[2];
+            *fw_major= received_data[1];            
+        }
+        else status=2;
+    }
+    return status;
+}
+
+int Pb6s40aDroneControl::DroneArmSet(uint8_t arm_state){     
+    uint8_t transmit_data[I2C2_DRONE_ARM_STATE_SET+2]; //address + data + checksum  
+    transmit_data[0]= I2C2_DRONE_ARM_STATE_SET;
+    transmit_data[1]= arm_state;
+    transmit_data[2]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_DRONE_ARM_STATE_LEN+1);
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_DRONE_ARM_STATE_SET,&transmit_data[1],I2C2_DRONE_ARM_STATE_LEN+1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
+int Pb6s40aDroneControl::DroneArmGet(uint8_t* arm_state){  
+    uint8_t status=0; 
+    uint8_t received_data[I2C2_DRONE_ARM_STATE_LEN+1];    
+    uint8_t checksum=0;   
+    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_DRONE_ARM_STATE_GET,&received_data[0],(I2C2_DRONE_ARM_STATE_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_DRONE_ARM_STATE_LEN);
+        if(checksum == received_data[I2C2_DRONE_ARM_STATE_LEN])
+        {
+            memcpy(arm_state, &received_data[0], I2C2_DRONE_ARM_STATE_LEN); 
+        }
+        else status=2;
+    }
+    return status;
+}
+
+/*ESC CONTROL*/
+int Pb6s40aDroneControl::EscStartOrEscapeConfigMode(){     
+    uint8_t transmit_data[2]; //address + data + checksum  
+    transmit_data[0]= I2C2_START_OR_ESCAPE_ESC_CONFIG;    
+    transmit_data[1]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],1);
+    uint8_t drone_statep=drone_arm;
+    uint8_t status=0;
+    status=DroneArmGet(&drone_statep);
+    if(drone_statep != 0)
+    {
+        return 1;
+    }    
+
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_START_OR_ESCAPE_ESC_CONFIG,&transmit_data[1],1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
+int Pb6s40aDroneControl::EscNextStepInConfigMode(){     
+    uint8_t transmit_data[2]; //address + data + checksum  
+    transmit_data[0]= I2C2_NEXT_STEP_ESC_CONFIG;    
+    transmit_data[1]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],1);
+
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_NEXT_STEP_ESC_CONFIG,&transmit_data[1],1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
 
 int Pb6s40aDroneControl::EscSetState(uint8_t pesc_state){     
     uint8_t transmit_data[I2C2_ESC_STATE_REG_LENGTH+2]; //address + data + checksum  
@@ -89,6 +187,33 @@ int Pb6s40aDroneControl::EscGetErrorLogs(ERROR_WARN_LOG* struct_pointer, uint8_t
         if(checksum == received_data[I2C2_ESC_ERROR_REG_LENGTH])
         {
             memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_ESC_ERROR_REG_LENGTH); 
+        }
+        else status=2;
+    }
+    return status;   
+}
+
+int Pb6s40aDroneControl::EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8_t esc_number)
+{
+    uint8_t status=0;
+    uint8_t received_data[I2C2_ESC_INFO_GET_REG_LENGTH+1];
+    uint8_t i2c_reg = I2C2_ESC1_INFO_GET_REG + (esc_number -1);
+    uint8_t checksum=0;
+
+    if(i2c_driver.I2cGetData(i2c_slave_address,i2c_reg,&received_data[0],(I2C2_ESC_INFO_GET_REG_LENGTH+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_ESC_INFO_GET_REG_LENGTH);
+        if(checksum == received_data[I2C2_ESC_INFO_GET_REG_LENGTH])
+        {
+            memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_ESC_INFO_GET_REG_LENGTH); 
         }
         else status=2;
     }
