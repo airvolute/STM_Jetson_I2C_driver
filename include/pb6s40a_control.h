@@ -19,8 +19,13 @@
 
 
 /*Power board PB6S40A - I2C2 MESSAGE REGISTERS*/
-#define I2C2_NOTHING_REG				0x00
-#define I2C2_WHOIAM_READ_REG			0x01
+#define I2C2_NOTHING_REG				    0x00
+#define I2C2_POWER_BOARD_FW_NUMBER			0x01
+#define I2C2_DRONE_ARM_STATE_SET			0x02
+#define I2C2_DRONE_ARM_STATE_GET			0x03
+#define I2C2_START_OR_ESCAPE_ESC_CONFIG		0x04
+#define I2C2_NEXT_STEP_ESC_CONFIG			0x05
+
 #define I2C2_ESC_STATE_GET_REG			0x11
 #define I2C2_ESC_STATE_SET_REG			0x12
 #define I2C2_ESC1_ERROR_GET_REG			0x13
@@ -31,16 +36,22 @@
 #define I2C2_ESC2_DATA_GET_REG			0x18
 #define I2C2_ESC3_DATA_GET_REG			0x19
 #define I2C2_ESC4_DATA_GET_REG			0x1A
+#define I2C2_ESC1_INFO_GET_REG			0x1B
+#define I2C2_ESC2_INFO_GET_REG			0x1C
+#define I2C2_ESC3_INFO_GET_REG			0x1D
+#define I2C2_ESC4_INFO_GET_REG			0x1E
 #define I2C2_LEDS_UPDATE_REG			0x60
 #define I2C2_LEDS_COUNT_GET_REG			0x61
 #define I2C2_LEDS_COUNT_SET_REG			0x62
 #define I2C2_LEDS_COLOR_SET_REG			0x63
 #define I2C2_LEDS_COLOR_SET_LONG_REG	0x64
 
-#define I2C2_WHOIAM_READ_REG_LEN		1
+#define I2C2_POWER_BOARD_FW_NUMBER_LEN		4
+#define I2C2_DRONE_ARM_STATE_LEN			1
 #define I2C2_ESC_STATE_REG_LENGTH		1
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
-#define I2C2_ESC_DATA_REG_LENGTH		8	 //size of RUN_DATA_Struct
+#define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
+#define I2C2_ESC_INFO_GET_REG_LENGTH	13   //size of ADB_DEVICE_INFO struct 12+status
 #define I2C2_LEDS_UPDATE_REG_LENGTH		1
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
@@ -76,8 +87,25 @@ typedef struct _RUN_DATA_Struct_
 
     uint32_t Temp_Motor_Max:8; //offset -50
     uint32_t Reserved      :24;
+    uint8_t  Diagnostic_status;
 } RUN_DATA_Struct;
 
+typedef struct
+{
+	uint8_t major;
+	uint8_t mid;
+	uint8_t minor;
+
+} ESC_FW_NUMBER;
+
+typedef struct
+{
+	ESC_FW_NUMBER fw_number;
+	uint32_t serial_number;
+	uint32_t hw_build;
+	uint8_t device_address;
+    uint8_t  Diagnostic_status;
+} ADB_DEVICE_INFO;
 
 
 class Pb6s40aDroneControl
@@ -85,14 +113,25 @@ class Pb6s40aDroneControl
     private: 
         I2CDriver& i2c_driver;
     public:     
+        int PowerBoardFwVersionGet(uint8_t* fw_major, uint8_t* fw_mid, uint8_t* fw_minor);
+
+        int DroneArmSet(uint8_t arm_state);
+
+        int DroneArmGet(uint8_t* arm_state);
+
+        int EscNextStepInConfigMode();
+
+        int EscStartOrEscapeConfigMode();
 
         int EscSetState(uint8_t pesc_state);
         
         int EscGetState(uint8_t* pesc_state);
 
-        int EscGetErrorLogs(ERROR_WARN_LOG* pesc_state, uint8_t esc_number);
+        int EscGetErrorLogs(ERROR_WARN_LOG* struct_pointer, uint8_t esc_number);
 
-        int EscGetDataLogs(RUN_DATA_Struct* pesc_state, uint8_t esc_number);
+        int EscGetDataLogs(RUN_DATA_Struct* struct_pointer, uint8_t esc_number);
+
+        int EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8_t esc_number);
 
         Pb6s40aDroneControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
 
@@ -108,6 +147,12 @@ enum led_buffers
 	rl_buffer,
 	rr_buffer,
 	ad_buffer
+};
+
+enum drone_arm_statesd
+{
+	drone_disarm,
+	drone_arm
 };
 
 typedef struct _LEDS_COUNT
