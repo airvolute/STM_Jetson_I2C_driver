@@ -24,7 +24,7 @@ int I2CDriver::I2cGetData(uint8_t address, uint8_t reg, uint8_t * read_buffer, u
   int result = ioctl(i2c_fd, I2C_RDWR, &ioctl_data);
   if (result != 2)
   {
-    perror("I2cGetData error");
+    perror("I2cGetData error");    
     return -1;
   }
   return 0;

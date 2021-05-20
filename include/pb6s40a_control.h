@@ -20,7 +20,7 @@
 
 /*Power board PB6S40A - I2C2 MESSAGE REGISTERS*/
 #define I2C2_NOTHING_REG				    0x00
-#define I2C2_POWER_BOARD_FW_NUMBER			0x01
+#define I2C2_POWER_BOARD_INFO   			0x01
 #define I2C2_DRONE_ARM_STATE_SET			0x02
 #define I2C2_DRONE_ARM_STATE_GET			0x03
 #define I2C2_START_OR_ESCAPE_ESC_CONFIG		0x04
@@ -46,8 +46,8 @@
 #define I2C2_LEDS_COLOR_SET_REG			0x63
 #define I2C2_LEDS_COLOR_SET_LONG_REG	0x64
 
-#define I2C2_POWER_BOARD_FW_NUMBER_LEN		4
-#define I2C2_DRONE_ARM_STATE_LEN			1
+#define I2C2_POWER_BOARD_INFO_LEN		11
+#define I2C2_DRONE_ARM_STATE_LEN		1
 #define I2C2_ESC_STATE_REG_LENGTH		1
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
 #define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
@@ -96,24 +96,30 @@ typedef struct
 	uint8_t mid;
 	uint8_t minor;
 
-} ESC_FW_NUMBER;
+} FW_NUMBER;
 
 typedef struct
 {
-	ESC_FW_NUMBER fw_number;
+	FW_NUMBER fw_number;
 	uint32_t serial_number;
 	uint32_t hw_build;
 	uint8_t device_address;
     uint8_t  Diagnostic_status;
 } ADB_DEVICE_INFO;
 
+typedef struct
+{
+	FW_NUMBER fw_number;
+	uint32_t serial_number;
+	uint32_t hw_build;
+} POWER_BOARD_INFO;
 
 class Pb6s40aDroneControl
 {
     private: 
         I2CDriver& i2c_driver;
     public:     
-        int PowerBoardFwVersionGet(uint8_t* fw_major, uint8_t* fw_mid, uint8_t* fw_minor);
+        int PowerBoardInfoGet(POWER_BOARD_INFO* pow_board_info_struct);
 
         int DroneArmSet(uint8_t arm_state);
 

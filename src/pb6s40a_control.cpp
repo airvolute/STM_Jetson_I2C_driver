@@ -1,11 +1,11 @@
 #include "pb6s40a_control.h"
 
 /*DRONE CONTROL*/
-int Pb6s40aDroneControl::PowerBoardFwVersionGet(uint8_t* fw_major, uint8_t* fw_mid, uint8_t* fw_minor){  
+int Pb6s40aDroneControl::PowerBoardInfoGet(POWER_BOARD_INFO* struct_pointer){  
     uint8_t status=0; 
-    uint8_t received_data[I2C2_POWER_BOARD_FW_NUMBER_LEN+1];    
+    uint8_t received_data[I2C2_POWER_BOARD_INFO_LEN];    
     uint8_t checksum=0;   
-    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_POWER_BOARD_FW_NUMBER,&received_data[0],(I2C2_POWER_BOARD_FW_NUMBER_LEN+1)) != 0) 
+    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_POWER_BOARD_INFO,&received_data[0],(I2C2_POWER_BOARD_INFO_LEN+1)) != 0) 
     {      
         status = 1;
     }else
@@ -14,13 +14,10 @@ int Pb6s40aDroneControl::PowerBoardFwVersionGet(uint8_t* fw_major, uint8_t* fw_m
     }
     if(status==0)
     {
-        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_FW_NUMBER_LEN);
-        if(checksum == received_data[I2C2_POWER_BOARD_FW_NUMBER_LEN])
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_INFO_LEN);
+        if(checksum == received_data[I2C2_POWER_BOARD_INFO_LEN])
         {
-            uint32_t pom =0;
-            *fw_minor= received_data[3];
-            *fw_mid= received_data[2];
-            *fw_major= received_data[1];            
+             memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_POWER_BOARD_INFO_LEN);          
         }
         else status=2;
     }

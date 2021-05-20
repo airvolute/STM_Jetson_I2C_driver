@@ -24,9 +24,7 @@ COLOR leds_ad_color_buff[40];
 uint8_t drone_arm_state = drone_disarm;
 
 /*Power board firmware number*/
-uint8_t pb_fw_major;
-uint8_t pb_fw_mid;
-uint8_t pb_fw_minor;
+POWER_BOARD_INFO power_board_info;
 
 
 int main(int argc, char **argv)
@@ -44,8 +42,9 @@ int main(int argc, char **argv)
       uint8_t status=0; // 0=No Error
 
       /*Power board firmware read*/
-      status = drone_control.PowerBoardFwVersionGet(&pb_fw_major, &pb_fw_mid, &pb_fw_minor);
-      std::cout<<"status:"<<(int)status<<"  POWER BOARD FIRMWARE (maj.mid.min): "<<(int)pb_fw_major<<"."<<(int)pb_fw_mid<<"."<<(int)pb_fw_minor<<std::endl;
+      status = drone_control.PowerBoardInfoGet(&power_board_info);
+      std::cout<<"status:"<<(int)status<<"  POWER BOARD firmware (maj.mid.min): "<<(int)power_board_info.fw_number.major<<"."<<(int)power_board_info.fw_number.mid<<"."<<(int)power_board_info.fw_number.minor
+      <<"  Serial number:"<<(int)power_board_info.serial_number<<"  HW build:"<<(int)power_board_info.hw_build<<std::endl;
 
       /*DRONE ARM STATE*/     
       //SET arm/disarm STATE
@@ -68,7 +67,7 @@ int main(int argc, char **argv)
       status= drone_control.EscGetErrorLogs(&esc_error_logs[2],esc3);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[3],esc4);
 
-      std::cout<<"Errors Diagnostic status: "<<(int)esc_error_logs[0].Diagnostic_status<<(int)esc_error_logs[1].Diagnostic_status<<(int)esc_error_logs[2].Diagnostic_status<<(int)esc_error_logs[3].Diagnostic_status<<std::endl;
+      std::cout<<"Diagnostic status for error logs: "<<(int)esc_error_logs[0].Diagnostic_status<<(int)esc_error_logs[1].Diagnostic_status<<(int)esc_error_logs[2].Diagnostic_status<<(int)esc_error_logs[3].Diagnostic_status<<std::endl;
       
       status= drone_control.EscGetDataLogs(&esc_data_logs[0],esc1);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[1],esc2);      
