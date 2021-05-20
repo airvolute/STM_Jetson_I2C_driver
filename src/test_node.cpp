@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
       /*Power board firmware read*/
       status = drone_control.PowerBoardFwVersionGet(&pb_fw_major, &pb_fw_mid, &pb_fw_minor);
-      std::cout<<"status:"<<(int)status<<" FIRMWARE (maj.mid.min): "<<(int)pb_fw_major<<"."<<(int)pb_fw_mid<<"."<<(int)pb_fw_minor<<std::endl;
+      std::cout<<"status:"<<(int)status<<"  POWER BOARD FIRMWARE (maj.mid.min): "<<(int)pb_fw_major<<"."<<(int)pb_fw_mid<<"."<<(int)pb_fw_minor<<std::endl;
 
       /*DRONE ARM STATE*/     
       //SET arm/disarm STATE
@@ -53,10 +53,6 @@ int main(int argc, char **argv)
       //GET STATE
       status = drone_control.DroneArmGet(&drone_arm_state);
       std::cout<<"status:"<<(int)status<<" drone arm state:"<<(int)drone_arm_state<<std::endl;*/
-
-
-      std::cout<<"press key"<<std::endl;
-      std::getc(stdin);
 
       /****ESC FUNCTION EXAMPLES ****/
      /*Functions to read/write state of ESC  - not used noww*/
@@ -67,21 +63,22 @@ int main(int argc, char **argv)
 
 
       /*Functions to read ESCs error logs, data logs and info*/
-      /*status= drone_control.EscGetErrorLogs(&esc_error_logs[0],esc1);
+      status= drone_control.EscGetErrorLogs(&esc_error_logs[0],esc1);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[1],esc2);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[2],esc3);
-      status= drone_control.EscGetErrorLogs(&esc_error_logs[3],esc4);*/
+      status= drone_control.EscGetErrorLogs(&esc_error_logs[3],esc4);
+
+      std::cout<<"Errors Diagnostic status: "<<(int)esc_error_logs[0].Diagnostic_status<<(int)esc_error_logs[1].Diagnostic_status<<(int)esc_error_logs[2].Diagnostic_status<<(int)esc_error_logs[3].Diagnostic_status<<std::endl;
       
-      /*status= drone_control.EscGetDataLogs(&esc_data_logs[0],esc1);      
+      status= drone_control.EscGetDataLogs(&esc_data_logs[0],esc1);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[1],esc2);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[2],esc3);      
       status= drone_control.EscGetDataLogs(&esc_data_logs[3],esc4);  
-      
-      std::cout<<(int)esc_data_logs[0].Temp_ESC_Max<<std::endl;
-      std::cout<<(int)esc_data_logs[1].Temp_ESC_Max<<std::endl;
-      std::cout<<(int)esc_data_logs[2].Temp_ESC_Max<<std::endl;
-      std::cout<<(int)esc_data_logs[3].Temp_ESC_Max<<std::endl; */
-
+      for (int i = 0; i < 4; i++)
+      {
+            std::cout<<"Diagnostic status="<<(int)esc_data_logs[i].Diagnostic_status<<"  ESC"<<(int)i<<" IS motor max: "<<(int)esc_data_logs[i].Is_Motor_Max<<" IS motor avg: "<<(int)esc_data_logs[i].Is_Motor_Avg
+            <<" Temp esc max: "<<(int)esc_data_logs[i].Temp_ESC_Max<<" Temp motor max: "<<(int)esc_data_logs[i].Temp_Motor_Max<<std::endl;
+      }
 
       status= drone_control.EscGetDeviceInfo(&esc_device_infos[0],esc1); 
       status= drone_control.EscGetDeviceInfo(&esc_device_infos[1],esc2);
@@ -89,8 +86,8 @@ int main(int argc, char **argv)
       status= drone_control.EscGetDeviceInfo(&esc_device_infos[3],esc4);
       for (int i = 0; i < 4; i++)
       {
-         std::cout<<"status:"<<(int)status<<"  ESC"<<i<<" FIRMWARE (maj.mid.min): "<<(int)esc_device_infos[i].fw_number.major<<"."<<(int)esc_device_infos[i].fw_number.mid<<"."<<(int)esc_device_infos[i].fw_number.minor<<"   device addr:"<<(int)esc_device_infos[i].device_address<<
-         "   hw build:"<<(int)esc_device_infos[i].hw_build<<std::endl;
+         std::cout<<"Diagnostic status="<<(int)esc_device_infos[i].Diagnostic_status<<"  ESC"<<i<<" FIRMWARE (maj.mid.min): "<<(int)esc_device_infos[i].fw_number.major<<"."<<(int)esc_device_infos[i].fw_number.mid<<"."<<(int)esc_device_infos[i].fw_number.minor<<"   device addr:"<<(int)esc_device_infos[i].device_address<<
+         "   hw build:"<<(int)esc_device_infos[i].hw_build<<"   serial num:"<<(int)esc_device_infos[i].serial_number<<std::endl;
       }
       
 

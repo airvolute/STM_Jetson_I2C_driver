@@ -50,8 +50,8 @@
 #define I2C2_DRONE_ARM_STATE_LEN			1
 #define I2C2_ESC_STATE_REG_LENGTH		1
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
-#define I2C2_ESC_DATA_REG_LENGTH		8	 //size of RUN_DATA_Struct
-#define I2C2_ESC_INFO_GET_REG_LENGTH	12   //size of ADB_DEVICE_INFO struct
+#define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
+#define I2C2_ESC_INFO_GET_REG_LENGTH	13   //size of ADB_DEVICE_INFO struct 12+status
 #define I2C2_LEDS_UPDATE_REG_LENGTH		1
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
@@ -87,6 +87,7 @@ typedef struct _RUN_DATA_Struct_
 
     uint32_t Temp_Motor_Max:8; //offset -50
     uint32_t Reserved      :24;
+    uint8_t  Diagnostic_status;
 } RUN_DATA_Struct;
 
 typedef struct
@@ -103,6 +104,7 @@ typedef struct
 	uint32_t serial_number;
 	uint32_t hw_build;
 	uint8_t device_address;
+    uint8_t  Diagnostic_status;
 } ADB_DEVICE_INFO;
 
 
