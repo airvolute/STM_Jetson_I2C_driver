@@ -43,8 +43,10 @@ int main(int argc, char **argv)
 
       /*Power board firmware read*/
       status = drone_control.PowerBoardInfoGet(&power_board_info);
-      std::cout<<"status:"<<(int)status<<"  POWER BOARD firmware (maj.mid.min): "<<(int)power_board_info.fw_number.major<<"."<<(int)power_board_info.fw_number.mid<<"."<<(int)power_board_info.fw_number.minor
-      <<"  Serial number:"<<(int)power_board_info.serial_number<<"  HW build:"<<(int)power_board_info.hw_build<<std::endl;
+      std::cout<<"status:"<<(uint32_t)status<<"  POWER BOARD firmware (maj.mid.min): "<<(uint32_t)power_board_info.fw_number.major<<"."<<(int)power_board_info.fw_number.mid<<"."<<(int)power_board_info.fw_number.minor
+      <<"  Serial number:"<<(uint32_t)power_board_info.serial_number<<"  HW build:"<<(uint32_t)power_board_info.hw_build<<std::endl;
+
+      std::cout<<"TESTING FIRMWARE ? : "<<((uint32_t)(power_board_info.hw_build >> 31))<<std::endl;
 
       /*DRONE ARM STATE*/     
       //SET arm/disarm STATE
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
       for (int i = 0; i < 4; i++)
       {
          std::cout<<"Diagnostic status="<<(int)esc_device_infos[i].Diagnostic_status<<"  ESC"<<i<<" FIRMWARE (maj.mid.min): "<<(int)esc_device_infos[i].fw_number.major<<"."<<(int)esc_device_infos[i].fw_number.mid<<"."<<(int)esc_device_infos[i].fw_number.minor<<"   device addr:"<<(int)esc_device_infos[i].device_address<<
-         "   hw build:"<<(int)esc_device_infos[i].hw_build<<"   serial num:"<<(int)esc_device_infos[i].serial_number<<std::endl;
+         "   hw build:"<<(uint32_t)esc_device_infos[i].hw_build<<"   serial num:"<<(uint32_t)esc_device_infos[i].serial_number<<std::endl;
       }
       
 

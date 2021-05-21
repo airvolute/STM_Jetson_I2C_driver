@@ -16,8 +16,14 @@ int Pb6s40aDroneControl::PowerBoardInfoGet(POWER_BOARD_INFO* struct_pointer){
     {
         checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_INFO_LEN);
         if(checksum == received_data[I2C2_POWER_BOARD_INFO_LEN])
-        {
-             memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_POWER_BOARD_INFO_LEN);          
+        {          
+            /*struct_pointer->fw_number.major = received_data[0];
+            struct_pointer->fw_number.mid = received_data[1];
+            struct_pointer->fw_number.minor = received_data[2];
+            struct_pointer->serial_number= received_data[3] + (received_data[4]<<8) + (received_data[5]<<16) + (received_data[6]<<24);  
+            struct_pointer->hw_build= received_data[7] + (received_data[8]<<8) + (received_data[9]<<16) + (received_data[10]<<24);  */
+
+            memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_POWER_BOARD_INFO_LEN);           
         }
         else status=2;
     }
@@ -209,14 +215,8 @@ int Pb6s40aDroneControl::EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8
     {
         checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_ESC_INFO_GET_REG_LENGTH);
         if(checksum == received_data[I2C2_ESC_INFO_GET_REG_LENGTH])
-        {
-            //memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_ESC_INFO_GET_REG_LENGTH); 
-            struct_pointer->fw_number.major = received_data[0];
-            struct_pointer->fw_number.mid = received_data[1];
-            struct_pointer->fw_number.minor = received_data[2];
-            struct_pointer->serial_number= received_data[3] + (received_data[4]<<8) + (received_data[5]<<16) + (received_data[6]<<24);  //uint32 from ESC starts from LSB (normal)
-            struct_pointer->hw_build= received_data[7] + (received_data[8]<<8) + (received_data[9]<<16) + (received_data[10]<<24);
-            struct_pointer->device_address = received_data[11];
+        {           
+            memcpy((uint8_t*)struct_pointer, &received_data[0], I2C2_ESC_INFO_GET_REG_LENGTH); 
         }
         else status=2;
     }
