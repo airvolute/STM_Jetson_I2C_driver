@@ -46,12 +46,12 @@
 #define I2C2_LEDS_COLOR_SET_REG			0x63
 #define I2C2_LEDS_COLOR_SET_LONG_REG	0x64
 
-#define I2C2_POWER_BOARD_INFO_LEN		11
+#define I2C2_POWER_BOARD_INFO_LEN		12
 #define I2C2_DRONE_ARM_STATE_LEN		1
 #define I2C2_ESC_STATE_REG_LENGTH		1
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
 #define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
-#define I2C2_ESC_INFO_GET_REG_LENGTH	13   //size of ADB_DEVICE_INFO struct 12+status
+#define I2C2_ESC_INFO_GET_REG_LENGTH	14   //size of ADB_DEVICE_INFO struct 12+status
 #define I2C2_LEDS_UPDATE_REG_LENGTH		1
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
@@ -101,6 +101,7 @@ typedef struct
 typedef struct
 {
 	FW_NUMBER fw_number;
+    uint8_t dummy; 
 	uint32_t serial_number;
 	uint32_t hw_build;
 	uint8_t device_address;
@@ -110,6 +111,7 @@ typedef struct
 typedef struct
 {
 	FW_NUMBER fw_number;
+    uint8_t dummy;
 	uint32_t serial_number;
 	uint32_t hw_build;
 } POWER_BOARD_INFO;
