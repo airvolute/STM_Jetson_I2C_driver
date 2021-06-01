@@ -3,8 +3,8 @@
 #include <iostream>
 #include <unistd.h> 
 
-//const char * device = "/dev/i2c-1"; // NANO
-const char * device = "/dev/i2c-8";  //NX
+const char * device = "/dev/i2c-1"; // NANO
+//const char * device = "/dev/i2c-8";  //NX
 I2CDriver i2c1_driver;
 Pb6s40aDroneControl drone_control(i2c1_driver);
 Pb6s40aLedsControl leds_control(i2c1_driver);
