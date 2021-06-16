@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 
       /*Functions to read ESCs error logs, data logs and info*/
-      status= drone_control.EscGetErrorLogs(&esc_error_logs[0],esc1);
+      /*status= drone_control.EscGetErrorLogs(&esc_error_logs[0],esc1);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[1],esc2);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[2],esc3);
       status= drone_control.EscGetErrorLogs(&esc_error_logs[3],esc4);
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
       {
          std::cout<<"Diagnostic status="<<(int)esc_device_infos[i].Diagnostic_status<<"  ESC"<<i<<" FIRMWARE (maj.mid.min): "<<(int)esc_device_infos[i].fw_number.major<<"."<<(int)esc_device_infos[i].fw_number.mid<<"."<<(int)esc_device_infos[i].fw_number.minor<<"   device addr:"<<(int)esc_device_infos[i].device_address<<
          "   hw build:"<<(uint32_t)esc_device_infos[i].hw_build<<"   serial num:"<<(uint32_t)esc_device_infos[i].serial_number<<std::endl;
-      }
+      }*/
       
 
       /*ESC CONFIG MODE - only for esc config script*/
@@ -105,44 +105,48 @@ int main(int argc, char **argv)
       //Functions to GET/SET mounted leds count 
       //LEDS_COUNT ledc;
       //status=leds_control.LedsGetLedsCount(ledc);
-      /*mounted_leds_count.fl_leds_count=10;
-      mounted_leds_count.fr_leds_count=10;
-      mounted_leds_count.rl_leds_count=10;
-      mounted_leds_count.rr_leds_count=10;
-      mounted_leds_count.ad_leds_count=9;
-      status=leds_control.LedsSetLedsCount(mounted_leds_count);*/
+      mounted_leds_count.fl_leds_count=8;
+      mounted_leds_count.fr_leds_count=8;
+      mounted_leds_count.rl_leds_count=8;
+      mounted_leds_count.rr_leds_count=8;
+      mounted_leds_count.ad_leds_count=8;
+      status=leds_control.LedsSetLedsCount(mounted_leds_count);
 
+      std::cout<<"LEDS count set: "<<(int)status<<std::endl;
       
+
+      status= leds_control.LedsSwitchPredefinedEffect(false);
+      std::cout<<"press key"<<std::endl;
+      std::getc(stdin);
+      std::cout<<" ... ..."<<std::endl;
+
+      status= leds_control.LedsSetPredefinedEffect(RED,RED,RED,RED,40,40,1,0);
+      status= leds_control.LedsSwitchPredefinedEffect(true);
 
       /*std::cout<<"press key"<<std::endl;
       std::getc(stdin);
       std::cout<<" ... ..."<<std::endl;*/      
       COLOR pom_color = RED;
-      while(0)
-      {
-            usleep(100000);
-            pom_color.R=128;
-            pom_color.G=0;
-            pom_color.B=0;
-            //Setting all buffer for additional led channel with red collor and send it to device  
-            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,40);
-            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(fr_buffer,leds_fr_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(rl_buffer,leds_rl_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(rr_buffer,leds_rr_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,9);
-            status=leds_control.LedsUpdate();
-            usleep(100000);
+      COLOR off_color = OFFCOLOR;
+
+      while(1)
+      {       
+            /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (GREEN/BLUE TOGGLING) */
+
+            pom_color=GREEN; 
+
+            usleep(500000);
+            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
+            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            status=leds_control.LedsUpdate(); // TRIGGERS UPDATE OF LEDS
+            usleep(500000);
             pom_color.R=0;
             pom_color.G=0;
-            pom_color.B=128;
-            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,40);
-            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(fr_buffer,leds_fr_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(rl_buffer,leds_rl_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(rr_buffer,leds_rr_color_buff,10);
-            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,9);
+            pom_color.B=255;
+            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8);
+            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
             status=leds_control.LedsUpdate();
+             
       }
       
 
