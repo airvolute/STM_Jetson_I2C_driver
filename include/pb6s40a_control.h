@@ -45,6 +45,8 @@
 #define I2C2_LEDS_COUNT_SET_REG			0x62
 #define I2C2_LEDS_COLOR_SET_REG			0x63
 #define I2C2_LEDS_COLOR_SET_LONG_REG	0x64
+#define I2C2_LEDS_SWITCH_PREDEF_EFFECT_REG	0x65
+#define I2C2_LEDS_SET_PREDEF_EFFECT_REG		0x66
 
 #define I2C2_POWER_BOARD_INFO_LEN		12
 #define I2C2_DRONE_ARM_STATE_LEN		1
@@ -56,6 +58,8 @@
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
 #define I2C2_LEDS_COLOR_SET_LONG_LENGTH	121
+#define I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN  1
+#define I2C2_LEDS_SET_PREDEF_EFFECT_LEN		16 
 
 #define ERROR_WARN_INIT {0x0000, 0x0000}
 #define ERROR_WARN_LOG_INIT {ERROR_WARN_INIT, ERROR_WARN_INIT, ERROR_WARN_INIT}
@@ -178,13 +182,14 @@ typedef struct _COLOR
   uint8_t B;
 } COLOR;
 
-#define RED		        {128, 0, 0}
-#define GREEN		    {0, 128, 0}
-#define BLUE		    {0, 0, 128}
-#define YELLOW 		    {128, 128, 0}
-#define CYAN		    {0, 128, 128}
-#define MAGENTA		    {128, 0, 128}
-#define WHITE           {128, 128, 128}
+#define OFFCOLOR        {0, 0, 0}
+#define RED		        {255, 0, 0}
+#define GREEN		    {0, 255, 0}
+#define BLUE		    {0, 0, 255}
+#define YELLOW 		    {255, 255, 0}
+#define CYAN		    {0, 255, 255}
+#define MAGENTA		    {255, 0, 255}
+#define WHITE           {255, 255, 255}
 
 class Pb6s40aLedsControl
 {
@@ -203,6 +208,10 @@ class Pb6s40aLedsControl
         int LedsUpdate();
 
         int LedsSetBufferWithOneColor(COLOR buffer[], COLOR color_to_set, uint8_t led_count);
+
+        int LedsSwitchPredefinedEffect(bool on_state);
+
+        int LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, COLOR rl_color, COLOR rr_color ,uint8_t on_time, uint8_t off_time, uint8_t effect_type, bool set_as_default);
 
         ~Pb6s40aLedsControl(){}
 };    

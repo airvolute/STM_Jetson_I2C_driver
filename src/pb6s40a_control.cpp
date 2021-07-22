@@ -265,7 +265,7 @@ int Pb6s40aLedsControl::LedsSendColorBuffer(uint8_t led_channel, COLOR buffer[],
 int Pb6s40aLedsControl::LedsSetLedsCount(LEDS_COUNT &leds_count)
 {
     if(leds_count.fl_leds_count>10 || leds_count.fr_leds_count>10 || leds_count.rl_leds_count>10 ||leds_count.rr_leds_count>10 || leds_count.ad_leds_count>40)return 1;
-    uint8_t transmit_data[I2C2_LEDS_COUNT_REG_LENGTH+1]; //buff+data + checksum  
+    uint8_t transmit_data[I2C2_LEDS_COUNT_REG_LENGTH+2]; //buff+data + checksum  
     memset(&transmit_data[0], 0x00, I2C2_LEDS_COUNT_REG_LENGTH+1);
     transmit_data[0]= I2C2_LEDS_COUNT_SET_REG;            
     memcpy(&transmit_data[1], (uint8_t*)&leds_count, I2C2_LEDS_COUNT_REG_LENGTH); 
@@ -321,17 +321,77 @@ int Pb6s40aLedsControl::LedsSetBufferWithOneColor(COLOR buffer[], COLOR color_to
 }
 
 int Pb6s40aLedsControl::LedsUpdate()
-        {
-            uint8_t transmit_data[I2C2_LEDS_UPDATE_REG_LENGTH+1]; //reg+data + checksum  
-            transmit_data[0]= I2C2_LEDS_UPDATE_REG;
-            transmit_data[1]= 0x01;
-            transmit_data[2]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_ESC_STATE_REG_LENGTH+1);
+{
+    uint8_t transmit_data[I2C2_LEDS_UPDATE_REG_LENGTH+2]; //reg+data + checksum  
+    transmit_data[0]= I2C2_LEDS_UPDATE_REG;
+    transmit_data[1]= 0x01;
+    transmit_data[2]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_LEDS_UPDATE_REG_LENGTH+1);
 
-            if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_LEDS_UPDATE_REG,&transmit_data[1],I2C2_LEDS_UPDATE_REG_LENGTH+1) != 0) 
-            {     
-                return 1;
-            }else
-            {
-                return 0;
-            }
-        }
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_LEDS_UPDATE_REG,&transmit_data[1],I2C2_LEDS_UPDATE_REG_LENGTH+1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
+/*
+* Turn on / off execution of predefined leds effect 
+*/
+int Pb6s40aLedsControl::LedsSwitchPredefinedEffect(bool on_state)
+{
+    uint8_t transmit_data[I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN+2]; //reg+data + checksum  
+    transmit_data[0]= I2C2_LEDS_SWITCH_PREDEF_EFFECT_REG;
+
+    if(on_state)transmit_data[1]= 0x01;
+    else transmit_data[1]= 0x00;
+    
+    transmit_data[2]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN+1);
+
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_LEDS_SWITCH_PREDEF_EFFECT_REG,&transmit_data[1],I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN+1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
+int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, COLOR rl_color, COLOR rr_color ,uint8_t on_time, uint8_t off_time, uint8_t effect_type, bool set_as_default)
+{
+    /*Real on time = on_time*25ms
+    * Real off time = off_time*25ms
+    * effect_type -> 0= no effect  1= toggling effect, 2= circle effect (only for AV drone_arm_led_ring)
+    * set_as_default - if true -> leds effect parameters are saved in internal eeprom and used as default after start
+    * */
+    uint8_t transmit_data[I2C2_LEDS_SET_PREDEF_EFFECT_LEN+2]; //reg+data + checksum  
+    transmit_data[0] = I2C2_LEDS_SET_PREDEF_EFFECT_REG;
+    transmit_data[1] = fl_color.R;
+    transmit_data[2] = fl_color.G;
+    transmit_data[3] = fl_color.B;
+    transmit_data[4] = fr_color.R;
+    transmit_data[5] = fr_color.G;
+    transmit_data[6] = fr_color.B;
+    transmit_data[7] = rl_color.R;
+    transmit_data[8] = rl_color.G;
+    transmit_data[9] = rl_color.B;
+    transmit_data[10] =  rr_color.R;  
+    transmit_data[11] =  rr_color.G;  
+    transmit_data[12] =  rr_color.B;
+    if(on_time >= 0 && on_time <= 255) transmit_data[13] = on_time;
+    if(off_time >= 0 && off_time <= 255) transmit_data[14] = off_time;
+    if(effect_type >= 0 && effect_type <= 3) transmit_data[15] = effect_type;
+    if(set_as_default)transmit_data[16] = 1;
+    else transmit_data[16] =0;
+
+    transmit_data[I2C2_LEDS_SET_PREDEF_EFFECT_LEN+1]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_LEDS_SET_PREDEF_EFFECT_LEN+1);
+
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_LEDS_SET_PREDEF_EFFECT_REG,&transmit_data[1],I2C2_LEDS_SET_PREDEF_EFFECT_LEN+1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
