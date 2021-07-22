@@ -229,6 +229,52 @@ int Pb6s40aDroneControl::EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8
     return status;   
 }
 
+int Pb6s40aDroneControl::EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uint8_t esc_number)
+{
+    uint8_t status=0;
+    uint8_t received_data[I2C2_ESC_RESIST_GET_REG_LENGTH+1];
+    uint8_t i2c_reg = I2C2_ESC1_RESIST_GET_REG + (esc_number -1);
+    uint8_t checksum=0;
+    uint32_t pom =0;
+    float pomfloat;
+
+    if(i2c_driver.I2cGetData(i2c_slave_address,i2c_reg,&received_data[0],(I2C2_ESC_RESIST_GET_REG_LENGTH+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_ESC_RESIST_GET_REG_LENGTH);
+        if(checksum == received_data[I2C2_ESC_RESIST_GET_REG_LENGTH])
+        {    
+            pom = received_data[0] + (received_data[1]<<8) + (received_data[2]<<16) + (received_data[3]<<24);          
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[0] = pomfloat;
+
+            pom = received_data[4] + (received_data[5]<<8) + (received_data[6]<<16) + (received_data[7]<<24);  
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[1] = pomfloat;
+
+            pom = received_data[8] + (received_data[9]<<8) + (received_data[10]<<16) + (received_data[11]<<24);
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[2] = pomfloat; 
+
+            pom = received_data[12] + (received_data[13]<<8) + (received_data[14]<<16) + (received_data[15]<<24); 
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Global = pomfloat;
+
+            struct_pointer->Diagnostic_status = received_data[16];          
+        }
+        else status=2;
+    }
+    return status;   
+}
+
+
 Pb6s40aDroneControl::~Pb6s40aDroneControl(){
 }
 
