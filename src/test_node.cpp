@@ -3,8 +3,8 @@
 #include <iostream>
 #include <unistd.h> 
 
-//const char * device = "/dev/i2c-1"; // NANO
-const char * device = "/dev/i2c-8";  //NX
+const char * device = "/dev/i2c-1"; // NANO
+//const char * device = "/dev/i2c-8";  //NX
 I2CDriver i2c1_driver;
 Pb6s40aDroneControl drone_control(i2c1_driver);
 Pb6s40aLedsControl leds_control(i2c1_driver);
@@ -14,6 +14,8 @@ ERROR_WARN_LOG esc_error_logs[4] ={ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR
 RUN_DATA_Struct esc_data_logs[4];
 ADB_DEVICE_INFO esc_device_infos[4];
 RESISTANCE_STRUCT esc_resistance_structs[4];
+
+
 
 LEDS_COUNT mounted_leds_count;
 COLOR leds_fl_color_buff[10];
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
       status = drone_control.PowerBoardInfoGet(&power_board_info);
       std::cout<<"status:"<<(uint32_t)status<<"  POWER BOARD firmware (maj.mid.min): "<<(uint32_t)power_board_info.fw_number.major<<"."<<(int)power_board_info.fw_number.mid<<"."<<(int)power_board_info.fw_number.minor
       <<"  Serial number:"<<(uint32_t)power_board_info.serial_number<<"  HW build:"<<(uint32_t)power_board_info.hw_build<<std::endl;
-
+      
       std::cout<<"TESTING FIRMWARE ? : "<<((uint32_t)(power_board_info.hw_build & 0x0001))<<std::endl;
 
       /*DRONE ARM STATE*/     
@@ -92,16 +94,6 @@ int main(int argc, char **argv)
          "   hw build:"<<(uint32_t)esc_device_infos[i].hw_build<<"   serial num:"<<(uint32_t)esc_device_infos[i].serial_number<<std::endl;
       }*/
       
-      status= drone_control.EscGetResistance(&esc_resistance_structs[0],esc1); 
-      status= drone_control.EscGetResistance(&esc_resistance_structs[1],esc2);
-      status= drone_control.EscGetResistance(&esc_resistance_structs[2],esc3);
-      status= drone_control.EscGetResistance(&esc_resistance_structs[3],esc4);
-      for (int i = 0; i < 4; i++)
-      {
-         std::cout<<"Diagnostic status="<<(int)esc_resistance_structs[i].Diagnostic_status<<"  ESC"<<i<<": PhaseA: "<<esc_resistance_structs[i].Phase[0]<<" PhaseB: "
-         <<esc_resistance_structs[i].Phase[1]<<" PhaseC: "<<esc_resistance_structs[i].Phase[2]<< " GLOBAL: "<<esc_resistance_structs[i].Global<<std::endl;
-      }
-
 
       /*ESC CONFIG MODE - only for esc config script*/
       //status = drone_control.EscStartOrEscapeConfigMode();
@@ -111,28 +103,46 @@ int main(int argc, char **argv)
       //status = drone_control.EscNextStepInConfigMode();
       //std::cout<<"EscNextStepInConfigMode:  status:"<<(int)status<<std::endl;
 
+      //ESC READ RESISTANCES
+      /*status= drone_control.EscGetResistance(&esc_resistance_structs[0],esc1); 
+      status= drone_control.EscGetResistance(&esc_resistance_structs[1],esc2);
+      status= drone_control.EscGetResistance(&esc_resistance_structs[2],esc3);
+      status= drone_control.EscGetResistance(&esc_resistance_structs[3],esc4);
+      for (int i = 0; i < 4; i++)
+      {
+         std::cout<<"Diagnostic status="<<(int)esc_resistance_structs[i].Diagnostic_status<<"  ESC"<<i<<": PhaseA: "<<esc_resistance_structs[i].Phase[0]<<" PhaseB: "
+         <<esc_resistance_structs[i].Phase[1]<<" PhaseC: "<<esc_resistance_structs[i].Phase[2]<< " GLOBAL: "<<esc_resistance_structs[i].Global<<std::endl;
+      }*/
+
+
 
       /****LEDS FUNCTION EXAMPLES ****/
       //Functions to GET/SET mounted leds count 
       //LEDS_COUNT ledc;
       //status=leds_control.LedsGetLedsCount(ledc);
-      /*mounted_leds_count.fl_leds_count=8;
+      mounted_leds_count.fl_leds_count=8;
       mounted_leds_count.fr_leds_count=8;
       mounted_leds_count.rl_leds_count=8;
       mounted_leds_count.rr_leds_count=8;
       mounted_leds_count.ad_leds_count=8;
       status=leds_control.LedsSetLedsCount(mounted_leds_count);
 
-      std::cout<<"LEDS count set: "<<(int)status<<std::endl;
+      std::cout<<"LEDS count set status: "<<(int)status<<std::endl;
       
 
       status= leds_control.LedsSwitchPredefinedEffect(false);
-      std::cout<<"press key"<<std::endl;
+      std::cout<<"LEDS turn off status: "<<(int)status<<std::endl;
+
+      std::cout<<"led turned off .. press key to continue"<<std::endl;
       std::getc(stdin);
       std::cout<<" ... ..."<<std::endl;
 
-      status= leds_control.LedsSetPredefinedEffect(RED,RED,RED,RED,40,40,1,0);
-      status= leds_control.LedsSwitchPredefinedEffect(true);*/
+      status= leds_control.LedsSetPredefinedEffect(RED,RED,RED,RED,40,40,1,false);
+      //status= leds_control.LedsSetPredefinedEffect(GREEN,GREEN,GREEN,GREEN,40,40,1,false); 
+      std::cout<<"LEDS set effect status: "<<(int)status<<std::endl;    
+      
+      status= leds_control.LedsSwitchPredefinedEffect(true);
+      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;
 
       /*std::cout<<"press key"<<std::endl;
       std::getc(stdin);

@@ -384,6 +384,7 @@ int Pb6s40aLedsControl::LedsUpdate()
 
 /*
 * Turn on / off execution of predefined leds effect 
+* true = on, false = off
 */
 int Pb6s40aLedsControl::LedsSwitchPredefinedEffect(bool on_state)
 {
@@ -406,8 +407,8 @@ int Pb6s40aLedsControl::LedsSwitchPredefinedEffect(bool on_state)
 
 int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, COLOR rl_color, COLOR rr_color ,uint8_t on_time, uint8_t off_time, uint8_t effect_type, bool set_as_default)
 {
-    /*Real on time = on_time*25ms
-    * Real off time = off_time*25ms
+    /*Real leds on time = on_time*25ms
+    * Real leds off time = off_time*25ms
     * effect_type -> 0= no effect  1= toggling effect, 2= circle effect (only for AV drone_arm_led_ring)
     * set_as_default - if true -> leds effect parameters are saved in internal eeprom and used as default after start
     * */
@@ -438,6 +439,7 @@ int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, 
         return 1;
     }else
     {
+        if(set_as_default)usleep(200000); //Time for processor to save effect to eeprom
         return 0;
     }
 }
