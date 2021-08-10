@@ -40,6 +40,11 @@
 #define I2C2_ESC2_INFO_GET_REG			0x1C
 #define I2C2_ESC3_INFO_GET_REG			0x1D
 #define I2C2_ESC4_INFO_GET_REG			0x1E
+#define I2C2_ESC1_RESIST_GET_REG		0x1F
+#define I2C2_ESC2_RESIST_GET_REG		0x20
+#define I2C2_ESC3_RESIST_GET_REG		0x21
+#define I2C2_ESC4_RESIST_GET_REG		0x22
+
 #define I2C2_LEDS_UPDATE_REG			0x60
 #define I2C2_LEDS_COUNT_GET_REG			0x61
 #define I2C2_LEDS_COUNT_SET_REG			0x62
@@ -54,6 +59,7 @@
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
 #define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
 #define I2C2_ESC_INFO_GET_REG_LENGTH	13   //size of ADB_DEVICE_INFO struct 12+status
+#define I2C2_ESC_RESIST_GET_REG_LENGTH  17
 #define I2C2_LEDS_UPDATE_REG_LENGTH		1
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
@@ -113,6 +119,13 @@ typedef struct
 
 typedef struct
 {
+    float   Phase[3];
+    float   Global;
+    uint8_t	Diagnostic_status;
+ } RESISTANCE_STRUCT;
+
+typedef struct
+{
 	FW_NUMBER fw_number;
     uint8_t dummy;
 	uint32_t serial_number;
@@ -143,6 +156,8 @@ class Pb6s40aDroneControl
         int EscGetDataLogs(RUN_DATA_Struct* struct_pointer, uint8_t esc_number);
 
         int EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8_t esc_number);
+
+        int EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uint8_t esc_number);
 
         Pb6s40aDroneControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
 

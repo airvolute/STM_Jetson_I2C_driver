@@ -229,6 +229,52 @@ int Pb6s40aDroneControl::EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8
     return status;   
 }
 
+int Pb6s40aDroneControl::EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uint8_t esc_number)
+{
+    uint8_t status=0;
+    uint8_t received_data[I2C2_ESC_RESIST_GET_REG_LENGTH+1];
+    uint8_t i2c_reg = I2C2_ESC1_RESIST_GET_REG + (esc_number -1);
+    uint8_t checksum=0;
+    uint32_t pom =0;
+    float pomfloat;
+
+    if(i2c_driver.I2cGetData(i2c_slave_address,i2c_reg,&received_data[0],(I2C2_ESC_RESIST_GET_REG_LENGTH+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_ESC_RESIST_GET_REG_LENGTH);
+        if(checksum == received_data[I2C2_ESC_RESIST_GET_REG_LENGTH])
+        {    
+            pom = received_data[0] + (received_data[1]<<8) + (received_data[2]<<16) + (received_data[3]<<24);          
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[0] = pomfloat;
+
+            pom = received_data[4] + (received_data[5]<<8) + (received_data[6]<<16) + (received_data[7]<<24);  
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[1] = pomfloat;
+
+            pom = received_data[8] + (received_data[9]<<8) + (received_data[10]<<16) + (received_data[11]<<24);
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Phase[2] = pomfloat; 
+
+            pom = received_data[12] + (received_data[13]<<8) + (received_data[14]<<16) + (received_data[15]<<24); 
+            std::memcpy(&pomfloat, &pom, sizeof(float));
+            struct_pointer->Global = pomfloat;
+
+            struct_pointer->Diagnostic_status = received_data[16];          
+        }
+        else status=2;
+    }
+    return status;   
+}
+
+
 Pb6s40aDroneControl::~Pb6s40aDroneControl(){
 }
 
@@ -338,6 +384,7 @@ int Pb6s40aLedsControl::LedsUpdate()
 
 /*
 * Turn on / off execution of predefined leds effect 
+* true = on, false = off
 */
 int Pb6s40aLedsControl::LedsSwitchPredefinedEffect(bool on_state)
 {
@@ -360,8 +407,8 @@ int Pb6s40aLedsControl::LedsSwitchPredefinedEffect(bool on_state)
 
 int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, COLOR rl_color, COLOR rr_color ,uint8_t on_time, uint8_t off_time, uint8_t effect_type, bool set_as_default)
 {
-    /*Real on time = on_time*25ms
-    * Real off time = off_time*25ms
+    /*Real leds on time = on_time*25ms
+    * Real leds off time = off_time*25ms
     * effect_type -> 0= no effect  1= toggling effect, 2= circle effect (only for AV drone_arm_led_ring)
     * set_as_default - if true -> leds effect parameters are saved in internal eeprom and used as default after start
     * */
@@ -392,6 +439,7 @@ int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, 
         return 1;
     }else
     {
+        if(set_as_default)usleep(200000); //Time for processor to save effect to eeprom
         return 0;
     }
 }
