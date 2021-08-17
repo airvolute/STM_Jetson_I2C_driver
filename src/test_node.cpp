@@ -14,6 +14,7 @@ ERROR_WARN_LOG esc_error_logs[4] ={ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR
 RUN_DATA_Struct esc_data_logs[4];
 ADB_DEVICE_INFO esc_device_infos[4];
 RESISTANCE_STRUCT esc_resistance_structs[4];
+STM_RESET_CAUSES stm_reset_causes;
 
 
 
@@ -114,13 +115,22 @@ int main(int argc, char **argv)
          <<esc_resistance_structs[i].Phase[1]<<" PhaseC: "<<esc_resistance_structs[i].Phase[2]<< " GLOBAL: "<<esc_resistance_structs[i].Global<<std::endl;
       }*/
 
+      status= drone_control.GetStmResetCauses(&stm_reset_causes);
+      std::cout<<"LPWR: "<<(int)stm_reset_causes.LPWR_resets_count<<std::endl;    
+      std::cout<<"WWDG: "<<(int)stm_reset_causes.WWDG_resets_count<<std::endl;    
+      std::cout<<"IWDG: "<<(int)stm_reset_causes.IWDG_resets_count<<std::endl;    
+      std::cout<<"SFT: "<<(int)stm_reset_causes.SFT_resets_count<<std::endl;    
+      std::cout<<"POR: "<<(int)stm_reset_causes.POR_resets_count<<std::endl;    
+      std::cout<<"PIN: "<<(int)stm_reset_causes.PIN_resets_count<<std::endl;    
+      std::cout<<"OB: "<<(int)stm_reset_causes.OB_resets_count<<std::endl;    
+      std::cout<<"V18PWR: "<<(int)stm_reset_causes.V18PWR_resets_count<<std::endl;    
 
 
       /****LEDS FUNCTION EXAMPLES ****/
       //Functions to GET/SET mounted leds count 
       //LEDS_COUNT ledc;
       //status=leds_control.LedsGetLedsCount(ledc);
-      mounted_leds_count.fl_leds_count=8;
+      /*mounted_leds_count.fl_leds_count=8;
       mounted_leds_count.fr_leds_count=8;
       mounted_leds_count.rl_leds_count=8;
       mounted_leds_count.rr_leds_count=8;
@@ -142,7 +152,7 @@ int main(int argc, char **argv)
       std::cout<<"LEDS set effect status: "<<(int)status<<std::endl;    
       
       status= leds_control.LedsSwitchPredefinedEffect(true);
-      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;
+      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;*/
 
       /*std::cout<<"press key"<<std::endl;
       std::getc(stdin);

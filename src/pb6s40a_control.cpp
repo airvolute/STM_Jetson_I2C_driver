@@ -274,6 +274,42 @@ int Pb6s40aDroneControl::EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uin
     return status;   
 }
 
+int Pb6s40aDroneControl::GetStmResetCauses(STM_RESET_CAUSES* struct_pointer)
+{
+    uint8_t status=0;
+    uint8_t received_data[I2C2_STM_POWER_CASES_GET_LEN+1];
+    uint8_t i2c_reg = I2C2_STM_POWER_CASES_GET;
+    uint8_t checksum=0;
+    uint32_t pom =0;
+    float pomfloat;
+
+    if(i2c_driver.I2cGetData(i2c_slave_address,i2c_reg,&received_data[0],(I2C2_STM_POWER_CASES_GET_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_STM_POWER_CASES_GET_LEN);
+        if(checksum == received_data[I2C2_STM_POWER_CASES_GET_LEN])
+        { 
+            struct_pointer->LPWR_resets_count =  received_data[0]; 
+            struct_pointer->WWDG_resets_count =  received_data[1]; 
+            struct_pointer->IWDG_resets_count =  received_data[2];        
+            struct_pointer->SFT_resets_count =  received_data[3];        
+            struct_pointer->POR_resets_count =  received_data[4];        
+            struct_pointer->PIN_resets_count =  received_data[5];        
+            struct_pointer->OB_resets_count  =  received_data[6];        
+            struct_pointer->V18PWR_resets_count =  received_data[7];                    
+        }
+        else status=2;
+    }
+    return status;   
+}
+
 
 Pb6s40aDroneControl::~Pb6s40aDroneControl(){
 }
