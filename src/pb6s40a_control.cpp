@@ -1,6 +1,7 @@
 #include "pb6s40a_control.h"
 
-/*DRONE CONTROL*/
+/*---------------------DRONE CONTROL-----------------------*/
+
 int Pb6s40aDroneControl::PowerBoardInfoGet(POWER_BOARD_INFO* struct_pointer){  
     uint8_t status=0; 
     uint8_t received_data[I2C2_POWER_BOARD_INFO_LEN];    
@@ -67,7 +68,10 @@ int Pb6s40aDroneControl::DroneArmGet(uint8_t* arm_state){
     return status;
 }
 
-/*ESC CONTROL*/
+
+/*----------------ESC CONTROL----------------------*/
+
+
 int Pb6s40aDroneControl::EscStartOrEscapeConfigMode(){     
     uint8_t transmit_data[2]; //address + data + checksum  
     transmit_data[0]= I2C2_START_OR_ESCAPE_ESC_CONFIG;    
@@ -274,6 +278,34 @@ int Pb6s40aDroneControl::EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uin
     return status;   
 }
 
+int Pb6s40aDroneControl::EscGetRuntimeStatus(ESCS_RUNTIME_STATUS* struct_pointer)
+{
+    uint8_t status=0;
+    uint8_t i2c_reg = I2C2_ESC_RUNTIME_STATUS_GET;
+    uint8_t received_data[I2C2_ESC_RUNTIME_STATUS_GET_LEN+1];
+    uint8_t checksum=0; 
+
+    if(i2c_driver.I2cGetData(i2c_slave_address,i2c_reg,&received_data[0],(I2C2_ESC_RUNTIME_STATUS_GET_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_ESC_RUNTIME_STATUS_GET_LEN);
+        if(checksum == received_data[I2C2_ESC_RUNTIME_STATUS_GET_LEN])
+        { 
+            memcpy((uint8_t*)struct_pointer, &received_data[0], 4);  
+        }
+        else status=2;
+    }
+    return status;   
+}
+
+
 int Pb6s40aDroneControl::GetStmResetCauses(STM_RESET_CAUSES* struct_pointer)
 {
     uint8_t status=0;
@@ -316,7 +348,9 @@ Pb6s40aDroneControl::~Pb6s40aDroneControl(){
 
 
 
-/*LEDS CONTROL*/
+/*------------LEDS CONTROL-------------------*/
+
+
 
 int Pb6s40aLedsControl::LedsSendColorBuffer(uint8_t led_channel, COLOR buffer[], uint8_t led_count)
 {

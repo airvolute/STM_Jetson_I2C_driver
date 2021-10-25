@@ -45,6 +45,7 @@
 #define I2C2_ESC2_RESIST_GET_REG		0x20
 #define I2C2_ESC3_RESIST_GET_REG		0x21
 #define I2C2_ESC4_RESIST_GET_REG		0x22
+#define I2C2_ESC_RUNTIME_STATUS_GET     0x23
 
 #define I2C2_LEDS_UPDATE_REG			0x60
 #define I2C2_LEDS_COUNT_GET_REG			0x61
@@ -61,6 +62,7 @@
 #define I2C2_ESC_DATA_REG_LENGTH		9	 //size of RUN_DATA_Struct 8 + status
 #define I2C2_ESC_INFO_GET_REG_LENGTH	13   //size of ADB_DEVICE_INFO struct 12+status
 #define I2C2_ESC_RESIST_GET_REG_LENGTH  17
+#define I2C2_ESC_RUNTIME_STATUS_GET_LEN 4
 #define I2C2_LEDS_UPDATE_REG_LENGTH		1
 #define I2C2_LEDS_COUNT_REG_LENGTH		5
 #define I2C2_LEDS_COLOR_SET_LENGTH		31
@@ -147,6 +149,15 @@ typedef struct
 
 } STM_RESET_CAUSES;
 
+typedef struct
+{
+	uint8_t esc1_status;
+	uint8_t esc2_status;
+	uint8_t esc3_status;
+    uint8_t esc4_status;
+
+} ESCS_RUNTIME_STATUS;
+
 class Pb6s40aDroneControl
 {
     private: 
@@ -175,6 +186,8 @@ class Pb6s40aDroneControl
         int EscGetDeviceInfo(ADB_DEVICE_INFO* struct_pointer, uint8_t esc_number);
 
         int EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uint8_t esc_number);
+
+        int EscGetRuntimeStatus(ESCS_RUNTIME_STATUS* struct_pointer);
 
         Pb6s40aDroneControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
 
