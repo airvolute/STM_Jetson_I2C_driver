@@ -3,8 +3,8 @@
 #include <iostream>
 #include <unistd.h> 
 
-const char * device = "/dev/i2c-1"; // NANO
-//const char * device = "/dev/i2c-8";  //NX
+//const char * device = "/dev/i2c-1"; // NANO
+const char * device = "/dev/i2c-8";  //NX
 I2CDriver i2c1_driver;
 Pb6s40aDroneControl drone_control(i2c1_driver);
 Pb6s40aLedsControl leds_control(i2c1_driver);
@@ -15,6 +15,8 @@ RUN_DATA_Struct esc_data_logs[4];
 ADB_DEVICE_INFO esc_device_infos[4];
 RESISTANCE_STRUCT esc_resistance_structs[4];
 STM_RESET_CAUSES stm_reset_causes;
+
+ESCS_RUNTIME_STATUS esc_statuses;
 
 
 
@@ -115,7 +117,7 @@ int main(int argc, char **argv)
          <<esc_resistance_structs[i].Phase[1]<<" PhaseC: "<<esc_resistance_structs[i].Phase[2]<< " GLOBAL: "<<esc_resistance_structs[i].Global<<std::endl;
       }*/
 
-      status= drone_control.GetStmResetCauses(&stm_reset_causes);
+      /*status= drone_control.GetStmResetCauses(&stm_reset_causes);
       std::cout<<"LPWR: "<<(int)stm_reset_causes.LPWR_resets_count<<std::endl;    
       std::cout<<"WWDG: "<<(int)stm_reset_causes.WWDG_resets_count<<std::endl;    
       std::cout<<"IWDG: "<<(int)stm_reset_causes.IWDG_resets_count<<std::endl;    
@@ -123,7 +125,11 @@ int main(int argc, char **argv)
       std::cout<<"POR: "<<(int)stm_reset_causes.POR_resets_count<<std::endl;    
       std::cout<<"PIN: "<<(int)stm_reset_causes.PIN_resets_count<<std::endl;    
       std::cout<<"OB: "<<(int)stm_reset_causes.OB_resets_count<<std::endl;    
-      std::cout<<"V18PWR: "<<(int)stm_reset_causes.V18PWR_resets_count<<std::endl;    
+      std::cout<<"V18PWR: "<<(int)stm_reset_causes.V18PWR_resets_count<<std::endl;   */ 
+
+      /*READ ESCs runtime status (from telemetry)*/
+      status = drone_control.EscGetRuntimeStatus(&esc_statuses);
+      std::cout<<"fcn_status: "<<(int)status<<"  ESC Statuses: "<<(int)esc_statuses.esc1_status<<(int)esc_statuses.esc2_status<<(int)esc_statuses.esc3_status<<(int)esc_statuses.esc4_status<<std::endl;
 
 
       /****LEDS FUNCTION EXAMPLES ****/
