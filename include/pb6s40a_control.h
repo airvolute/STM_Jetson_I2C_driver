@@ -25,6 +25,7 @@
 #define I2C2_DRONE_ARM_STATE_GET			0x03
 #define I2C2_START_OR_ESCAPE_ESC_CONFIG		0x04
 #define I2C2_NEXT_STEP_ESC_CONFIG			0x05
+#define I2C2_STM_POWER_CASES_GET			0x06
 
 #define I2C2_ESC_STATE_GET_REG			0x11
 #define I2C2_ESC_STATE_SET_REG			0x12
@@ -66,6 +67,7 @@
 #define I2C2_LEDS_COLOR_SET_LONG_LENGTH	121
 #define I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN  1
 #define I2C2_LEDS_SET_PREDEF_EFFECT_LEN		16 
+#define I2C2_STM_POWER_CASES_GET_LEN		8
 
 #define ERROR_WARN_INIT {0x0000, 0x0000}
 #define ERROR_WARN_LOG_INIT {ERROR_WARN_INIT, ERROR_WARN_INIT, ERROR_WARN_INIT}
@@ -132,6 +134,19 @@ typedef struct
 	uint32_t hw_build;
 } POWER_BOARD_INFO;
 
+typedef struct
+{   
+    uint8_t LPWR_resets_count;     
+    uint8_t WWDG_resets_count;
+	uint8_t IWDG_resets_count;
+	uint8_t SFT_resets_count;
+	uint8_t POR_resets_count;
+	uint8_t PIN_resets_count;
+	uint8_t OB_resets_count;
+	uint8_t	V18PWR_resets_count;
+
+} STM_RESET_CAUSES;
+
 class Pb6s40aDroneControl
 {
     private: 
@@ -142,6 +157,8 @@ class Pb6s40aDroneControl
         int DroneArmSet(uint8_t arm_state);
 
         int DroneArmGet(uint8_t* arm_state);
+
+        int GetStmResetCauses(STM_RESET_CAUSES* struct_pointer);
 
         int EscNextStepInConfigMode();
 
