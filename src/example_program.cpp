@@ -128,8 +128,8 @@ int main(int argc, char **argv)
       std::cout<<"V18PWR: "<<(int)stm_reset_causes.V18PWR_resets_count<<std::endl;   */ 
 
       /*READ ESCs runtime status (from telemetry)*/
-      status = drone_control.EscGetRuntimeStatus(&esc_statuses);
-      std::cout<<"fcn_status: "<<(int)status<<"  ESC Statuses: "<<(int)esc_statuses.esc1_status<<(int)esc_statuses.esc2_status<<(int)esc_statuses.esc3_status<<(int)esc_statuses.esc4_status<<std::endl;
+      //status = drone_control.EscGetRuntimeStatus(&esc_statuses);
+      //std::cout<<"fcn_status: "<<(int)status<<"  ESC Statuses: "<<(int)esc_statuses.esc1_status<<(int)esc_statuses.esc2_status<<(int)esc_statuses.esc3_status<<(int)esc_statuses.esc4_status<<std::endl;
 
 
       /****LEDS FUNCTION EXAMPLES ****/
@@ -143,22 +143,23 @@ int main(int argc, char **argv)
       mounted_leds_count.ad_leds_count=8;
       status=leds_control.LedsSetLedsCount(mounted_leds_count);
 
-      std::cout<<"LEDS count set status: "<<(int)status<<std::endl;
+      std::cout<<"LEDS count set status: "<<(int)status<<std::endl;*/
       
 
-      status= leds_control.LedsSwitchPredefinedEffect(false);
+      status= leds_control.LedsSwitchPredefinedEffect(false);      
       std::cout<<"LEDS turn off status: "<<(int)status<<std::endl;
 
       std::cout<<"led turned off .. press key to continue"<<std::endl;
       std::getc(stdin);
       std::cout<<" ... ..."<<std::endl;
 
-      status= leds_control.LedsSetPredefinedEffect(RED,RED,RED,RED,40,40,1,false);
-      //status= leds_control.LedsSetPredefinedEffect(GREEN,GREEN,GREEN,GREEN,40,40,1,false); 
+      //status= leds_control.LedsSetPredefinedEffect(RED,RED,RED,RED,40,40,1,false);
+      //status= leds_control.LedsSetPredefinedEffect(GREEN,GREEN,GREEN,GREEN,40,40,1,true); 
+      status= leds_control.LedsSetPredefinedEffect(BLUE,BLUE,BLUE,BLUE,40,40,1,true); 
       std::cout<<"LEDS set effect status: "<<(int)status<<std::endl;    
       
       status= leds_control.LedsSwitchPredefinedEffect(true);
-      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;*/
+      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;
 
       /*std::cout<<"press key"<<std::endl;
       std::getc(stdin);
@@ -170,18 +171,22 @@ int main(int argc, char **argv)
       {       
             /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (GREEN/BLUE TOGGLING) */
 
-            pom_color=GREEN; 
+            pom_color=RED; 
 
             usleep(500000);
-            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
-            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            //leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
+            //status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            leds_control.LedsSetBufferWithOneColor(leds_fl_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
+            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,mounted_leds_count.fl_leds_count);
             status=leds_control.LedsUpdate(); // TRIGGERS UPDATE OF LEDS
             usleep(500000);
             pom_color.R=0;
             pom_color.G=0;
             pom_color.B=255;
-            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8);
-            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            //leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8);
+            //status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            leds_control.LedsSetBufferWithOneColor(leds_fl_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
+            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,mounted_leds_count.fl_leds_count);
             status=leds_control.LedsUpdate();
              
       }
