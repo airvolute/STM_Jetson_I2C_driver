@@ -31,6 +31,44 @@ int Pb6s40aDroneControl::PowerBoardInfoGet(POWER_BOARD_INFO* struct_pointer){
     return status;
 }
 
+int Pb6s40aDroneControl::PowerBoardStatusGet(uint8_t* pb_status)
+{
+    uint8_t status=0; 
+    uint8_t received_data[I2C2_POWER_BOARD_STATUS_LEN+1];    
+    uint8_t checksum=0;   
+    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_POWER_BOARD_STATUS,&received_data[0],(I2C2_POWER_BOARD_STATUS_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_STATUS_LEN);
+        if(checksum == received_data[I2C2_POWER_BOARD_STATUS_LEN])
+        {
+            memcpy(pb_status, &received_data[0], I2C2_POWER_BOARD_STATUS_LEN); 
+        }
+        else status=2;
+    }
+    return status;
+}
+
+int Pb6s40aDroneControl::DroneTurnOff()
+{
+    uint8_t transmit_data[2]; //address + checksum  
+    transmit_data[0]= I2C2_DRONE_TURN_OFF;    
+    transmit_data[1]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],1);
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_DRONE_TURN_OFF,&transmit_data[1],1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
 int Pb6s40aDroneControl::DroneArmSet(uint8_t arm_state){     
     uint8_t transmit_data[I2C2_DRONE_ARM_STATE_SET+2]; //address + data + checksum  
     transmit_data[0]= I2C2_DRONE_ARM_STATE_SET;
@@ -342,6 +380,11 @@ int Pb6s40aDroneControl::GetStmResetCauses(STM_RESET_CAUSES* struct_pointer)
     return status;   
 }
 
+Pb6s40aDroneControl::Pb6s40aDroneControl(I2CDriver& i2c_driver_, uint8_t i2c_address)
+    : i2c_driver(i2c_driver_)
+{
+    i2c_slave_address = i2c_address;
+}
 
 Pb6s40aDroneControl::~Pb6s40aDroneControl(){
 }
@@ -512,4 +555,10 @@ int Pb6s40aLedsControl::LedsSetPredefinedEffect(COLOR fl_color, COLOR fr_color, 
         if(set_as_default)usleep(200000); //Time for processor to save effect to eeprom
         return 0;
     }
+}
+
+Pb6s40aLedsControl::Pb6s40aLedsControl(I2CDriver& i2c_driver_, uint8_t i2c_address)
+    : i2c_driver(i2c_driver_)
+{
+    i2c_slave_address = i2c_address;
 }

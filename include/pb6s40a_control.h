@@ -19,13 +19,14 @@
 
 
 /*Power board PB6S40A - I2C2 MESSAGE REGISTERS*/
-#define I2C2_NOTHING_REG				    0x00
-#define I2C2_POWER_BOARD_INFO   			0x01
+#define I2C2_POWER_BOARD_STATUS				0x00
+#define I2C2_POWER_BOARD_INFO				0x01
 #define I2C2_DRONE_ARM_STATE_SET			0x02
 #define I2C2_DRONE_ARM_STATE_GET			0x03
 #define I2C2_START_OR_ESCAPE_ESC_CONFIG		0x04
 #define I2C2_NEXT_STEP_ESC_CONFIG			0x05
 #define I2C2_STM_POWER_CASES_GET			0x06
+#define I2C2_DRONE_TURN_OFF					0x07
 
 #define I2C2_ESC_STATE_GET_REG			0x11
 #define I2C2_ESC_STATE_SET_REG			0x12
@@ -70,11 +71,13 @@
 #define I2C2_LEDS_SWITCH_PREDEF_EFFECT_LEN  1
 #define I2C2_LEDS_SET_PREDEF_EFFECT_LEN		16 
 #define I2C2_STM_POWER_CASES_GET_LEN		8
+#define I2C2_POWER_BOARD_STATUS_LEN			1
 
 #define ERROR_WARN_INIT {0x0000, 0x0000}
 #define ERROR_WARN_LOG_INIT {ERROR_WARN_INIT, ERROR_WARN_INIT, ERROR_WARN_INIT}
 
-const uint8_t i2c_slave_address = 0x10; // SLAVE ADDRESS OF POWER BOARD I2C2
+#define I2C2_MAIN_BOARD_ADDRESS 0x10
+#define I2C2_SECONDARY_BOARD_ADDRESS 0x11
 
 enum esc_states{escs_sleep,	escs_run, escs_diagnostic};
 enum esc_numbers{esc1=1,esc2,esc3,esc4};
@@ -158,12 +161,29 @@ typedef struct
 
 } ESCS_RUNTIME_STATUS;
 
+enum power_board_statuses
+{
+	program_state_run,
+	program_state_Esc_config,
+	program_state_turning_off,
+	program_state_off,
+	program_state_standby
+};
+
 class Pb6s40aDroneControl
 {
     private: 
         I2CDriver& i2c_driver;
-    public:     
+    public:    
+        uint8_t i2c_slave_address;
+
+        Pb6s40aDroneControl(I2CDriver& i2c_driver_, uint8_t i2c_address);
+
         int PowerBoardInfoGet(POWER_BOARD_INFO* pow_board_info_struct);
+
+        int PowerBoardStatusGet(uint8_t* pb_status);
+
+        int DroneTurnOff();
 
         int DroneArmSet(uint8_t arm_state);
 
@@ -188,8 +208,6 @@ class Pb6s40aDroneControl
         int EscGetResistance(RESISTANCE_STRUCT* struct_pointer, uint8_t esc_number);
 
         int EscGetRuntimeStatus(ESCS_RUNTIME_STATUS* struct_pointer);
-
-        Pb6s40aDroneControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
 
         ~Pb6s40aDroneControl();
 };    
@@ -240,9 +258,10 @@ class Pb6s40aLedsControl
 {
     private: 
         I2CDriver& i2c_driver;
-    public:    
+    public:  
+        uint8_t i2c_slave_address;  
 
-        Pb6s40aLedsControl(I2CDriver& i2c_driver_) : i2c_driver(i2c_driver_) {}
+        Pb6s40aLedsControl(I2CDriver& i2c_driver_, uint8_t i2c_address);
 
         int LedsSendColorBuffer(uint8_t led_channel, COLOR buffer[], uint8_t led_count);
 
