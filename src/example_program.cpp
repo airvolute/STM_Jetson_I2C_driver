@@ -2,12 +2,15 @@
 #include "pb6s40a_control.h"
 #include <iostream>
 #include <unistd.h> 
+//#include <stdlib.h>
+#include <linux/reboot.h>
+#include <sys/reboot.h>
 
 //const char * device = "/dev/i2c-1"; // NANO
 const char * device = "/dev/i2c-8";  //NX
 I2CDriver i2c1_driver;
-Pb6s40aDroneControl drone_control(i2c1_driver);
-Pb6s40aLedsControl leds_control(i2c1_driver);
+Pb6s40aDroneControl drone_control(i2c1_driver, I2C2_MAIN_BOARD_ADDRESS);  //I2C2_SECONDARY_BOARD_ADDRESS for secondary octocopter board
+Pb6s40aLedsControl leds_control(i2c1_driver, I2C2_MAIN_BOARD_ADDRESS);  //I2C2_SECONDARY_BOARD_ADDRESS for secondary octocopter board
 
 
 ERROR_WARN_LOG esc_error_logs[4] ={ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT,ERROR_WARN_LOG_INIT};
@@ -28,6 +31,7 @@ COLOR leds_rr_color_buff[10];
 COLOR leds_ad_color_buff[40];
 
 uint8_t drone_arm_state = drone_disarm;
+uint8_t power_board_status;
 
 /*Power board firmware number*/
 POWER_BOARD_INFO power_board_info;
@@ -60,6 +64,9 @@ int main(int argc, char **argv)
       //GET STATE
       status = drone_control.DroneArmGet(&drone_arm_state);
       std::cout<<"status:"<<(int)status<<" drone arm state:"<<(int)drone_arm_state<<std::endl;*/
+
+      /*DRONE TURN OFF BY COMMAND*/
+      //status = drone_control.DroneTurnOff();
 
       /****ESC FUNCTION EXAMPLES ****/
      /*Functions to read/write state of ESC  - not used noww*/
@@ -146,7 +153,7 @@ int main(int argc, char **argv)
       std::cout<<"LEDS count set status: "<<(int)status<<std::endl;*/
       
 
-      status= leds_control.LedsSwitchPredefinedEffect(false);      
+      /*status= leds_control.LedsSwitchPredefinedEffect(false);      
       std::cout<<"LEDS turn off status: "<<(int)status<<std::endl;
 
       std::cout<<"led turned off .. press key to continue"<<std::endl;
@@ -159,7 +166,7 @@ int main(int argc, char **argv)
       std::cout<<"LEDS set effect status: "<<(int)status<<std::endl;    
       
       status= leds_control.LedsSwitchPredefinedEffect(true);
-      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;
+      std::cout<<"LEDS turn on status: "<<(int)status<<std::endl;*/
 
       /*std::cout<<"press key"<<std::endl;
       std::getc(stdin);
@@ -167,28 +174,35 @@ int main(int argc, char **argv)
       COLOR pom_color = RED;
       COLOR off_color = OFFCOLOR;
 
-      while(0)
+      while(1)
       {       
-            /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (GREEN/BLUE TOGGLING) */
-
-            pom_color=RED; 
-
+            /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (RED/BLUE TOGGLING) */
+            /*pom_color=RED; 
             usleep(500000);
-            //leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
-            //status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
-            leds_control.LedsSetBufferWithOneColor(leds_fl_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
-            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,mounted_leds_count.fl_leds_count);
+            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
+            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
             status=leds_control.LedsUpdate(); // TRIGGERS UPDATE OF LEDS
             usleep(500000);
             pom_color.R=0;
             pom_color.G=0;
             pom_color.B=255;
-            //leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8);
-            //status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
-            leds_control.LedsSetBufferWithOneColor(leds_fl_color_buff,pom_color,8); // SET WHOLE BUFFER WITH ONE COLOR 
-            status=leds_control.LedsSendColorBuffer(fl_buffer,leds_fl_color_buff,mounted_leds_count.fl_leds_count);
-            status=leds_control.LedsUpdate();
+            leds_control.LedsSetBufferWithOneColor(leds_ad_color_buff,pom_color,8);
+            status=leds_control.LedsSendColorBuffer(ad_buffer,leds_ad_color_buff,mounted_leds_count.ad_leds_count);
+            status=leds_control.LedsUpdate();*/
              
+
+            /*GRACEFUL SHUTDOWN HANDLING*/ 
+            /*Jetson pools for powerboards status change and then write all pending filesystem modification and power system off*/
+            /*status = drone_control.PowerBoardStatusGet(&power_board_status);
+            std::cout<<(int)status<<" Power Board Status : "<<(int)power_board_status<<std::endl;   
+
+            if(power_board_status == program_state_turning_off)
+            {      
+                  sync();            
+                  reboot(LINUX_REBOOT_CMD_POWER_OFF);
+            }
+            usleep(1000000); //1Hz frequency  */              
+      
       }
       
 
