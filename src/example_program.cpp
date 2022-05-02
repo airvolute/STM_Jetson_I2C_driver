@@ -58,6 +58,24 @@ int main(int argc, char **argv)
       
       std::cout<<"TESTING FIRMWARE ? : "<<((uint32_t)(power_board_info.hw_build & 0x0001))<<std::endl;
 
+
+
+      /*BOARD SETUP*/
+      POWER_BOARD_SETUP board_setup_struct;
+      status = drone_control.PowerBoardSetupRead(&board_setup_struct);
+      std::cout<<"BOARD SETUP: "<<" "<<(uint32_t)board_setup_struct.autostart<<" "<<(uint32_t)board_setup_struct.jetson_rtc_maintain<<" "<<(uint32_t)board_setup_struct.esc_autorun
+      <<" "<<(uint32_t)board_setup_struct.power_sensor_l<<" "<<(uint32_t)board_setup_struct.power_sensor_h<<std::endl;
+      
+      board_setup_struct.autostart=1;
+      board_setup_struct.jetson_rtc_maintain=1;
+      board_setup_struct.esc_autorun=1;
+      board_setup_struct.power_sensor_h=1;
+      board_setup_struct.power_sensor_l=1;
+
+      status = drone_control.PowerBoardSetupWrite(board_setup_struct);
+      std::cout<<" write status:"<<(uint32_t)status<<std::endl;
+
+
       /*DRONE ARM STATE*/     
       //SET arm/disarm STATE
       /*status = drone_control.DroneArmSet(drone_arm);
@@ -174,7 +192,7 @@ int main(int argc, char **argv)
       COLOR pom_color = RED;
       COLOR off_color = OFFCOLOR;
 
-      while(1)
+      while(0)
       {       
             /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (RED/BLUE TOGGLING) */
             /*pom_color=RED; 
