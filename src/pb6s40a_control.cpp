@@ -55,6 +55,60 @@ int Pb6s40aDroneControl::PowerBoardStatusGet(uint8_t* pb_status)
     return status;
 }
 
+int Pb6s40aDroneControl::PowerBoardSetupRead(POWER_BOARD_SETUP* power_board_setup_struct)
+{
+    uint8_t status=0; 
+    uint8_t received_data[I2C2_POWER_BOARD_SETUP_LEN+1];    
+    uint8_t checksum=0;   
+    if(i2c_driver.I2cGetData(i2c_slave_address,I2C2_POWER_BOARD_SETUP_GET,&received_data[0],(I2C2_POWER_BOARD_SETUP_LEN+1)) != 0) 
+    {      
+        status = 1;
+    }else
+    {
+        status = 0;
+    }
+    if(status==0)
+    {
+        checksum=i2c_driver.I2cCalculateChecksum(&received_data[0],I2C2_POWER_BOARD_SETUP_LEN);
+        if(checksum == received_data[I2C2_POWER_BOARD_SETUP_LEN])
+        {
+            power_board_setup_struct->autostart=received_data[0];
+            power_board_setup_struct->jetson_rtc_maintain=received_data[1];
+            power_board_setup_struct->esc_autorun=received_data[2];
+            power_board_setup_struct->power_sensor_l=received_data[3];
+            power_board_setup_struct->power_sensor_h=received_data[4];
+            //power_board_setup_struct-> =received_data[5];
+            //power_board_setup_struct-> =received_data[6];
+            //power_board_setup_struct-> =received_data[7];
+        }
+        else status=2;
+    }
+    return status;
+}
+
+int Pb6s40aDroneControl::PowerBoardSetupWrite(POWER_BOARD_SETUP power_board_setup_struct)
+{
+    uint8_t transmit_data[I2C2_POWER_BOARD_SETUP_LEN+2];
+    transmit_data[0]= I2C2_POWER_BOARD_SETUP;  
+    transmit_data[1]= power_board_setup_struct.autostart;
+    transmit_data[2]= power_board_setup_struct.jetson_rtc_maintain;
+    transmit_data[3]= power_board_setup_struct.esc_autorun;
+    transmit_data[4]= power_board_setup_struct.power_sensor_l;
+    transmit_data[5]= power_board_setup_struct.power_sensor_h;
+    //transmit_data[6]= power_board_setup_struct.
+    //transmit_data[7]= power_board_setup_struct.
+    //transmit_data[8]= power_board_setup_struct.
+    transmit_data[9]= i2c_driver.I2cCalculateChecksum(&transmit_data[0],I2C2_POWER_BOARD_SETUP_LEN+1);
+
+    if(i2c_driver.I2cSetData(i2c_slave_address,I2C2_POWER_BOARD_SETUP,&transmit_data[1],I2C2_POWER_BOARD_SETUP_LEN+1) != 0) 
+    {     
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
 int Pb6s40aDroneControl::DroneTurnOff()
 {
     uint8_t transmit_data[2]; //address + checksum  

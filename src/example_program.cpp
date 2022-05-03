@@ -58,6 +58,24 @@ int main(int argc, char **argv)
       
       std::cout<<"TESTING FIRMWARE ? : "<<((uint32_t)(power_board_info.hw_build & 0x0001))<<std::endl;
 
+
+
+      /*BOARD SETUP*/
+      //READ
+      /*POWER_BOARD_SETUP board_setup_struct;
+      status = drone_control.PowerBoardSetupRead(&board_setup_struct);
+      std::cout<<"BOARD SETUP: "<<" "<<(uint32_t)board_setup_struct.autostart<<" "<<(uint32_t)board_setup_struct.jetson_rtc_maintain<<" "<<(uint32_t)board_setup_struct.esc_autorun
+      <<" "<<(uint32_t)board_setup_struct.power_sensor_l<<" "<<(uint32_t)board_setup_struct.power_sensor_h<<std::endl;      
+      //WRITE
+      board_setup_struct.autostart=0;
+      board_setup_struct.jetson_rtc_maintain=0;
+      board_setup_struct.esc_autorun=1;
+      board_setup_struct.power_sensor_h=1;
+      board_setup_struct.power_sensor_l=0;
+      status = drone_control.PowerBoardSetupWrite(board_setup_struct);
+      std::cout<<" write status:"<<(uint32_t)status<<std::endl;*/
+
+
       /*DRONE ARM STATE*/     
       //SET arm/disarm STATE
       /*status = drone_control.DroneArmSet(drone_arm);
@@ -135,9 +153,9 @@ int main(int argc, char **argv)
       std::cout<<"V18PWR: "<<(int)stm_reset_causes.V18PWR_resets_count<<std::endl;   */ 
 
       /*READ ESCs runtime status (from telemetry)*/
-      //status = drone_control.EscGetRuntimeStatus(&esc_statuses);
-      //std::cout<<"fcn_status: "<<(int)status<<"  ESC Statuses: "<<(int)esc_statuses.esc1_status<<(int)esc_statuses.esc2_status<<(int)esc_statuses.esc3_status<<(int)esc_statuses.esc4_status<<std::endl;
-
+      /*status = drone_control.EscGetRuntimeStatus(&esc_statuses);
+      std::cout<<"fcn_status: "<<(int)status<<"  ESC Statuses: "<<(int)esc_statuses.esc1_status<<(int)esc_statuses.esc2_status<<(int)esc_statuses.esc3_status<<(int)esc_statuses.esc4_status<<std::endl;
+      */
 
       /****LEDS FUNCTION EXAMPLES ****/
       //Functions to GET/SET mounted leds count 
@@ -174,7 +192,7 @@ int main(int argc, char **argv)
       COLOR pom_color = RED;
       COLOR off_color = OFFCOLOR;
 
-      while(1)
+      while(0)
       {       
             /*CONTROL ADDITIONAL LED CHANNEL IN WHILE CYCLE (RED/BLUE TOGGLING) */
             /*pom_color=RED; 

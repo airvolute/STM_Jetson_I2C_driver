@@ -27,6 +27,8 @@
 #define I2C2_NEXT_STEP_ESC_CONFIG			0x05
 #define I2C2_STM_POWER_CASES_GET			0x06
 #define I2C2_DRONE_TURN_OFF					0x07
+#define I2C2_POWER_BOARD_SETUP				0x08
+#define I2C2_POWER_BOARD_SETUP_GET			0x09
 
 #define I2C2_ESC_STATE_GET_REG			0x11
 #define I2C2_ESC_STATE_SET_REG			0x12
@@ -57,6 +59,7 @@
 #define I2C2_LEDS_SET_PREDEF_EFFECT_REG		0x66
 
 #define I2C2_POWER_BOARD_INFO_LEN		12
+#define I2C2_POWER_BOARD_SETUP_LEN		8
 #define I2C2_DRONE_ARM_STATE_LEN		1
 #define I2C2_ESC_STATE_REG_LENGTH		1
 #define I2C2_ESC_ERROR_REG_LENGTH		25   //size of ERROR_WARN_LOG
@@ -140,6 +143,18 @@ typedef struct
 } POWER_BOARD_INFO;
 
 typedef struct
+{
+	uint8_t autostart;
+    uint8_t jetson_rtc_maintain;
+    uint8_t esc_autorun;
+    uint8_t power_sensor_l;
+    uint8_t power_sensor_h;
+    uint8_t reserved1;
+    uint8_t reserved2;
+    uint8_t reserved3;
+} POWER_BOARD_SETUP;
+
+typedef struct
 {   
     uint8_t LPWR_resets_count;     
     uint8_t WWDG_resets_count;
@@ -170,6 +185,16 @@ enum power_board_statuses
 	program_state_standby
 };
 
+enum powerboard_setup
+{
+	SETUP_AUTOSTART,
+	SETUP_JETSON_RTC_MAINTAIN,
+	SETUP_ESC_AUTORUN,
+	SETUP_POWER_SENSOR_L_FITTED,
+	SETUP_POWER_SENSOR_H_FITTED
+	//ADD NEW CONFIG (up to 8)
+};
+
 class Pb6s40aDroneControl
 {
     private: 
@@ -182,6 +207,10 @@ class Pb6s40aDroneControl
         int PowerBoardInfoGet(POWER_BOARD_INFO* pow_board_info_struct);
 
         int PowerBoardStatusGet(uint8_t* pb_status);
+
+        int PowerBoardSetupRead(POWER_BOARD_SETUP* power_board_setup_struct);
+
+        int PowerBoardSetupWrite(POWER_BOARD_SETUP power_board_setup_struct);
 
         int DroneTurnOff();
 
